@@ -33,7 +33,7 @@ contract DebtArbitrator {
 
         if (newDebt < debts[msg.sender] || newDebt < amount) {
             Cheating(msg.sender);
-            throw;
+            return false;
         }
 
         debts[msg.sender] = newDebt;
@@ -44,14 +44,7 @@ contract DebtArbitrator {
     function repay(address borrower, uint amount) onlyOwner() returns (bool repaid) {
         if (debts[borrower] < amount) return false;
 
-        uint newDebt = debts[borrower] - amount;
-
-        if (newDebt > debts[borrower] || newDebt > amount) {
-            Cheating(owner);
-            throw;
-        }
-
-        debts[borrower] = newDebt;
+        debts[borrower] -= amount;
         Repaid(borrower, amount);
         return true;
     }
