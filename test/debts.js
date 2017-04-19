@@ -114,4 +114,25 @@ contract('Debts', function(accounts) {
     .then(() => debts.debts(borrower))
     .then(asserts.equal(5));
   });
+
+  it('should allow multiple borrowers', () => {
+      const borrower1 = accounts[1];
+      const borrower2 = accounts[2];
+      const value1 = 1000;
+      const value2 = 2000;
+      return Promise.resolve()
+      .then(() => debts.borrow(value1, {from: borrower1}))
+      .then(() => debts.borrow(value2, {from: borrower2}))
+      .then(() => debts.debts(borrower1))
+      .then(asserts.equal(value1))
+      .then(() => debts.debts(borrower2))
+      .then(asserts.equal(value2));
+  });
+
+  it('should not affect other debts when repaying');
+
+  it('should allow additional borrowing');
+
+  it('should allow to view the address of the owner');
+
 });
