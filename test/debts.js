@@ -68,7 +68,6 @@ contract('Debts', function(accounts) {
         assert.equal(result.logs[0].args.by, borrower);
         assert.equal(result.logs[0].args.value.valueOf(), value);
       });
-
   });
 
   
