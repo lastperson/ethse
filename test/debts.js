@@ -22,7 +22,7 @@ contract('Debts', function(accounts) {
     return Promise.resolve()
     .then(() => debts.borrow(value, {from: borrower}))
     .then(() => debts.repay(borrower, value, {from: OWNER}))
-    .then(() => debts.debts(borrower))
+    .then(() => debts.debts.call(borrower))
     .then(asserts.equal(0));
   });
 
@@ -61,7 +61,7 @@ contract('Debts', function(accounts) {
       const value = 1000;
       return Promise.resolve()
       .then(() => debts.borrow(value, {from: borrower}))
-      .then(() => debts.debts(borrower))
+      .then(() => debts.debts.call(borrower))
       .then(asserts.equal(value));
   });
 
@@ -83,7 +83,7 @@ contract('Debts', function(accounts) {
       return Promise.resolve()
       .then(() => debts.borrow(1000, {from: OWNER}))
       .then(result => assert.equal(result.logs.length, 0))
-      .then(() => debts.debts(OWNER))
+      .then(() => debts.debts.call(OWNER))
       .then(asserts.equal(0));
   });
 
@@ -94,9 +94,40 @@ contract('Debts', function(accounts) {
     .then(() => debts.borrow(value, {from: borrower}))
     .then(() => debts.repay(borrower, value, {from: borrower}))
     .then(result => assert.equal(result.logs.length, 0))
-    .then(() => debts.debts(borrower))
+    .then(() => debts.debts.call(borrower))
     .then(asserts.equal(value));
   });
 
-  it('should direct you for inventing more tests');
+
+  it('should allow others to see their debts', () => {
+    const borrower_1 = accounts[1];
+    const borrower_2 = accounts[2];
+    const borrower_3 = accounts[3];
+    return Promise.resolve()
+    .then(() => debts.borrow(100, {from: borrower_1}))
+    .then(() => debts.debts.call(borrower_1, {from: borrower_1}))
+    .then(asserts.equal(100))
+    .then(() => debts.borrow(200, {from: borrower_2}))
+    .then(() => debts.debts.call(borrower_2, {from: borrower_2}))
+    .then(asserts.equal(200))
+    .then(() => debts.borrow(300, {from: borrower_3}))
+    .then(() => debts.debts.call(borrower_3, {from: borrower_3}))
+    .then(asserts.equal(300))
+  });
+
+  it('should allow owner to see others debts', () => {
+    const borrower_1 = accounts[1];
+    const borrower_2 = accounts[2];
+    const borrower_3 = accounts[3];
+    return Promise.resolve()
+    .then(() => debts.borrow(100, {from: borrower_1}))
+    .then(() => debts.debts.call(borrower_1, {from: OWNER}))
+    .then(asserts.equal(100))
+    .then(() => debts.borrow(200, {from: borrower_2}))
+    .then(() => debts.debts.call(borrower_2, {from: OWNER}))
+    .then(asserts.equal(200))
+    .then(() => debts.borrow(300, {from: borrower_3}))
+    .then(() => debts.debts.call(borrower_3, {from: OWNER}))
+    .then(asserts.equal(300))
+  });
 });
