@@ -2,6 +2,13 @@ const Reverter = require('./helpers/reverter');
 const Asserts = require('./helpers/asserts');
 const Loans = artifacts.require('./Loans.sol');
 
+function assertSingleLogEvent(result, eventName, borrower, amount) {
+    assert.equal(result.logs.length, 1);
+    assert.equal(result.logs[0].event, eventName);
+    assert.equal(result.logs[0].args.borrower, borrower);
+    assert.equal(result.logs[0].args.amount.valueOf(), amount);
+}
+
 contract('Loans', function(accounts) {
   const reverter = new Reverter(web3);
   afterEach('revert', reverter.revert);
@@ -39,12 +46,7 @@ contract('Loans', function(accounts) {
     const amount = 1000;
     return Promise.resolve()
     .then(() => loans.takeLoan(amount, {from: borrower}))
-    .then(result => {
-      assert.equal(result.logs.length, 1);
-      assert.equal(result.logs[0].event, 'LoanTaken');
-      assert.equal(result.logs[0].args.borrower, borrower);
-      assert.equal(result.logs[0].args.amount.valueOf(), amount);
-    });
+    .then(result => {assertSingleLogEvent(result, 'LoanTaken', borrower, amount)});
   });
 
   it('should allow to take the loan', () => {
@@ -62,18 +64,14 @@ contract('Loans', function(accounts) {
     return Promise.resolve()
     .then(() => loans.takeLoan(amount, {from: borrower}))
     .then(() => loans.returnLoan(borrower, amount, {from: OWNER}))
-    .then(result => {
-      assert.equal(result.logs.length, 1);
-      assert.equal(result.logs[0].event, 'LoanReturned');
-      assert.equal(result.logs[0].args.borrower, borrower);
-      assert.equal(result.logs[0].args.amount.valueOf(), amount);
-    });
+    .then(result => {assertSingleLogEvent(result, 'LoanReturned', borrower, amount)});
   });
 
   it('should not allow owner to take the loan', () => {
     const amount = 1000;
     return Promise.resolve()
     .then(() => loans.takeLoan(amount, {from: OWNER}))
+    .then(result => {assert.equal(result.logs.length, 0)})
     .then(() => loans.loans(OWNER))
 	  .then(asserts.equal(0));
   });
@@ -84,11 +82,17 @@ contract('Loans', function(accounts) {
     const amount = 1000;
     return Promise.resolve()
     .then(() => loans.takeLoan(amount, {from: borrower1}))
+    .then(result => {assertSingleLogEvent(result, 'LoanTaken', borrower1, amount)})
     .then(() => loans.takeLoan(amount, {from: borrower2}))
+    .then(result => {assertSingleLogEvent(result, 'LoanTaken', borrower2, amount)})
     .then(() => loans.returnLoan(borrower1, amount, {from: borrower1}))
+    .then(result => {assert.equal(result.logs.length, 0)})
     .then(() => loans.returnLoan(borrower1, amount, {from: borrower2}))
+    .then(result => {assert.equal(result.logs.length, 0)})
     .then(() => loans.returnLoan(borrower2, amount, {from: borrower1}))
+    .then(result => {assert.equal(result.logs.length, 0)})
     .then(() => loans.returnLoan(borrower2, amount, {from: borrower2}))
+    .then(result => {assert.equal(result.logs.length, 0)})
     .then(() => loans.loans(borrower1))
 	  .then(asserts.equal(amount))
     .then(() => loans.loans(borrower2))
@@ -100,7 +104,9 @@ contract('Loans', function(accounts) {
     const amount = 1000;
     return Promise.resolve()
     .then(() => loans.takeLoan(amount, {from: borrower}))
+    .then(result => {assertSingleLogEvent(result, 'LoanTaken', borrower, amount)})
     .then(() => loans.returnLoan(borrower, amount + 1, {from: OWNER}))
+    .then(result => {assertSingleLogEvent(result, 'LoanReturned', borrower, amount)})
     .then(() => loans.loans(borrower))
 	  .then(asserts.equal(0))
   });
@@ -109,12 +115,17 @@ contract('Loans', function(accounts) {
     const borrower = accounts[3];
     return Promise.resolve()
     .then(() => loans.takeLoan(1500, {from: borrower}))
+    .then(result => {assertSingleLogEvent(result, 'LoanTaken', borrower, 1500)})
     .then(() => loans.returnLoan(borrower, 800, {from: OWNER}))
+    .then(result => {assertSingleLogEvent(result, 'LoanReturned', borrower, 800)})
     .then(() => loans.loans(borrower))
 	  .then(asserts.equal(700))
     .then(() => loans.returnLoan(borrower, 700, {from: OWNER}))
+    .then(result => {assertSingleLogEvent(result, 'LoanReturned', borrower, 700)})
     .then(() => loans.loans(borrower))
     .then(asserts.equal(0))
   });
+
+
 });
 
