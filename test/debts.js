@@ -47,13 +47,95 @@ contract('Debts', function(accounts) {
     });
   });
 
-  it('should allow to borrow');
+  it('should allow to borrow', () => {
+    const borrower = accounts[3];
+    const value = 1000;
+    return Promise.resolve()
+      .then(() => debts.borrow(value, {from: borrower}))
+      .then(() => debts.debts(borrower))
+        .then(asserts.equal(value));
+  });
 
-  it('should emit Repayed event on repay');
+  it('should emit Repayed event on repay', () => {
+    const borrower = accounts[3];
+    const value = 1000;
+    return Promise.resolve()
+      .then(() => debts.borrow(value, {from: borrower}))
+      .then(() => debts.repay(borrower, value, {from: OWNER}))
+        .then(result => {
+        assert.equal(result.logs.length, 1);
+        assert.equal(result.logs[0].event, 'Repayed');
+        assert.equal(result.logs[0].args.by, borrower);
+        assert.equal(result.logs[0].args.value.valueOf(), value);
+      });
+  });
 
-  it('should not allow owner to borrow');
+  
+  it('should not allow owner to borrow', () => {
+    const value = 1000;
+    return Promise.resolve()
+    .then(() => debts.borrow(value, {from: OWNER}))
+    .then(() => debts.debts(OWNER))
+      .then(asserts.equal(0));  
+  });
 
-  it('should not allow not owner to repay');
+  it('should not allow not owner to repay', () => {
+    const borrower = accounts[3];
+    const value = 1000;
+    return Promise.resolve()
+      .then(() => debts.borrow(value, {from: borrower}))
+      .then(() => debts.repay(borrower, value, {from: borrower}))
+      .then(() => debts.debts(borrower))
+        .then(asserts.equal(value));
+  });
 
-  it('should direct you for inventing more tests');
-});
+
+  it('should allow partial repay', () => {
+    const borrower = accounts[3];
+    const value = 1000;
+    const partialPayment = 600;
+    return Promise.resolve()
+      .then(() => debts.borrow(value, {from: borrower}))
+      .then(() => debts.debts(borrower))
+        .then(asserts.equal(value))
+      .then(() => debts.repay(borrower, partialPayment, {from: OWNER}))
+      .then(() => debts.debts(borrower))
+        .then(asserts.equal(value - partialPayment));
+  });
+
+  it('should not be possible to repay more than debt', () => {
+  const borrower = accounts[3];
+    const value = 1000;
+    return Promise.resolve()
+      .then(() => debts.borrow(value, {from: borrower}))
+      .then(() => asserts.throws(debts.repay(borrower, value + 100, {from: OWNER})))
+  });
+
+  it('should not be possible to repay if debt was not created', () => {
+  const borrower = accounts[3];
+    return Promise.resolve()
+      .then(() => asserts.throws(debts.repay(borrower, 100, {from: OWNER})))
+  });
+
+  it('should not be possible to repay from owner wallet', () => {
+    const borrower = accounts[3];
+    const value = 1000;
+    return Promise.resolve()
+      .then(() => debts.borrow(value, {from: borrower}))
+      .then(() => asserts.throws(debts.repay(OWNER, value, {from: OWNER})));
+  });
+
+  it('should allow to borrow from several accounts', () => {
+  const borrower = accounts[2];
+  const secondaryBorrower = accounts[3];
+  const value = 1000;
+  return Promise.resolve()
+    .then(() => debts.borrow(value, {from: borrower}))
+    .then(() => debts.borrow(value, {from: secondaryBorrower}))
+    .then(() => debts.debts(borrower))
+      .then(asserts.equal(value))
+    .then(() => debts.debts(secondaryBorrower))
+      .then(asserts.equal(value));
+  });
+  
+ });
