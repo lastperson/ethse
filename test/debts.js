@@ -89,15 +89,6 @@ contract('Debts', function(accounts) {
         .then(asserts.equal(value));
   });
 
-  it('should allow to repay', () => {
-    const borrower = accounts[3];
-    const value = 1000;
-    return Promise.resolve()
-      .then(() => debts.borrow(value, {from: borrower}))
-      .then(() => debts.repay(borrower, value, {from: OWNER}))
-      .then(() => debts.debts(borrower))
-        .then(asserts.equal(0));
-  });
 
   it('should allow partial repay', () => {
     const borrower = accounts[3];
@@ -112,7 +103,7 @@ contract('Debts', function(accounts) {
         .then(asserts.equal(value - partialPayment));
   });
 
-  it('it should not be possible to repay more then debt', () => {
+  it('should not be possible to repay more than debt', () => {
   const borrower = accounts[3];
     const value = 1000;
     return Promise.resolve()
@@ -120,13 +111,13 @@ contract('Debts', function(accounts) {
       .then(() => asserts.throws(debts.repay(borrower, value + 100, {from: OWNER})))
   });
 
-  it('it should not be possible to repay if debt was not created', () => {
+  it('should not be possible to repay if debt was not created', () => {
   const borrower = accounts[3];
     return Promise.resolve()
       .then(() => asserts.throws(debts.repay(borrower, 100, {from: OWNER})))
   });
 
-  it('should not be possible to repay by owner', () => {
+  it('should not be possible to repay from owner wallet', () => {
     const borrower = accounts[3];
     const value = 1000;
     return Promise.resolve()
@@ -134,5 +125,17 @@ contract('Debts', function(accounts) {
       .then(() => asserts.throws(debts.repay(OWNER, value, {from: OWNER})));
   });
 
-
-});
+  it('should allow to borrow from several accounts', () => {
+  const borrower = accounts[2];
+  const secondaryBorrower = accounts[3];
+  const value = 1000;
+  return Promise.resolve()
+    .then(() => debts.borrow(value, {from: borrower}))
+    .then(() => debts.borrow(value, {from: secondaryBorrower}))
+    .then(() => debts.debts(borrower))
+      .then(asserts.equal(value))
+    .then(() => debts.debts(secondaryBorrower))
+      .then(asserts.equal(value));
+  });
+  
+ });
