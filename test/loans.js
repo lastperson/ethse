@@ -60,9 +60,110 @@ contract('Loans', function (accounts) {
                 assert.equal(result, 0)
             });
     });
-    it('should allow to repay loan');
-    it('should not allow to approve loan for non-owner');
-    it('should not allow to repay  loan for non-owner');
-    it('should allow to partial repay');
+    it('should allow to repay loan', () => {
+        const borrower = accounts[3];
+        const value = 1000;
+        const due_to = 1494147606;
+        return Promise.resolve()
+            .then(() => contract.newRequest(value, due_to, {from: borrower}))
+            .then(()=> contract.approveRequest(borrower, {from: OWNER}))
+            .then(()=> contract.repayLoan(value, borrower, {from: OWNER}))
+            .then((result)=> {
+                assert.equal(result.logs.length, 1);
+                assert.equal(result.logs[0].event, 'loanFullyRepayed');
+                assert.equal(result.logs[0].args.borrower, borrower);
+            })
+            .then(()=>contract.getRequestSum(borrower))
+            .then((result) => {
+                assert.equal(result, 0)
+            })
+            .then(()=>contract.getLoanSum(borrower))
+            .then((result) => {
+                assert.equal(result, 0)
+            });
+    });
+    it('should allow to partial repay', () => {
+        const borrower = accounts[3];
+        const value = 1000;
+        const partialRepaymentValue = 300;
+        const due_to = 1494147606;
+        return Promise.resolve()
+            .then(() => contract.newRequest(value, due_to, {from: borrower}))
+            .then(()=> contract.approveRequest(borrower, {from: OWNER}))
+            .then(()=> contract.repayLoan(partialRepaymentValue, borrower, {from: OWNER}))
+            .then((result)=> {
+                assert.equal(result.logs.length, 1);
+                assert.equal(result.logs[0].event, 'loanRepayed');
+                assert.equal(result.logs[0].args.borrower, borrower);
+            })
+            .then(()=>contract.getRequestSum(borrower))
+            .then((result) => {
+                assert.equal(result, 0)
+            })
+            .then(()=>contract.getLoanSum(borrower))
+            .then((result) => {
+                assert.equal(result, value-partialRepaymentValue)
+            });
+    });
+    it('should not allow to repay more money than borrowed', () => {
+        const borrower = accounts[3];
+        const value = 1000;
+        const partialRepaymentValue = 3000;
+        const due_to = 1494147606;
+        return Promise.resolve()
+            .then(() => contract.newRequest(value, due_to, {from: borrower}))
+            .then(()=> contract.approveRequest(borrower, {from: OWNER}))
+            .then(()=> contract.repayLoan(partialRepaymentValue, borrower, {from: OWNER}))
+            .then((result)=> {
+                assert.equal(result.logs.length, 0);
+            })
+            .then(()=>contract.getRequestSum(borrower))
+            .then((result) => {
+                assert.equal(result, 0)
+            })
+            .then(()=>contract.getLoanSum(borrower))
+            .then((result) => {
+                assert.equal(result, value)
+            });
+    });
+    it('should not allow to approve loan for non-owner', () => {
+        const borrower = accounts[3];
+        const value = 1000;
+        const due_to = 1494147606;
+        return Promise.resolve()
+            .then(() => contract.newRequest(value, due_to, {from: borrower}))
+            .then(()=> contract.approveRequest(borrower, {from: borrower}))
+            .then((result) => {
+                assert.equal(result.logs.length, 0);
+            })
+            .then(()=>contract.getLoanSum(borrower))
+            .then((result)=>{
+                assert.equal(result, 0)
+            })
+            .then(()=>contract.getRequestSum(borrower))
+            .then((result) => {
+                assert.equal(result, value)
+            });
+    });
+    it('should not allow to repay  loan for non-owner', () => {
+        const borrower = accounts[3];
+        const value = 1000;
+        const due_to = 1494147606;
+        return Promise.resolve()
+            .then(() => contract.newRequest(value, due_to, {from: borrower}))
+            .then(()=> contract.approveRequest(borrower, {from: OWNER}))
+            .then(()=> contract.repayLoan(value, borrower, {from: borrower}))
+            .then((result)=> {
+                assert.equal(result.logs.length, 0);
+            })
+            .then(()=>contract.getRequestSum(borrower))
+            .then((result) => {
+                assert.equal(result, 0)
+            })
+            .then(()=>contract.getLoanSum(borrower))
+            .then((result) => {
+                assert.equal(result, value)
+            });
+    });
 
 });
