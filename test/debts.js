@@ -108,5 +108,6 @@ contract('Debts', function(accounts) {
     return Promise.resolve()
     .then(() => debts.borrow(value, {from: borrower}))
     .then(() => asserts.throws(debts.repay(borrower, repay, {from: OWNER})))
-  });  
+  });
+  
 });
