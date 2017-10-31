@@ -47,13 +47,62 @@ contract('Debts', function(accounts) {
     });
   });
 
-  it('should allow to borrow');
+  it('should allow to borrow', () => {
+    const borrower = accounts[3];
+    const value = 1000;
+    return Promise.resolve()
+    .then(() => debts.borrow(value, {from: borrower}))
+    .then(() => debts.debts(borrower))
+    .then(asserts.equal(1000));
+  });
 
-  it('should emit Repayed event on repay');
+  it('should emit Repayed event on repay', () => {
+    const owner = accounts[0];
+    const borrower = accounts[3];
+    const value = 1000;
+    return Promise.resolve()
+    .then(() => debts.borrow(value, {from: borrower}))
+    .then(() => debts.repay(borrower, value, {from: owner}))
+    .then(result => {
+      assert.equal(result.logs.length, 1);
+      assert.equal(result.logs[0].event, 'Repayed');
+      assert.equal(result.logs[0].args.by, borrower);
+      assert.equal(result.logs[0].args.value.valueOf(), value);
+    });
+  });
 
-  it('should not allow owner to borrow');
+  it('should not allow owner to borrow', () => {
+    const owner = accounts[0];
+    const value = 1000;
+    return Promise.resolve()
+    .then(() => debts.borrow(value, {from: owner}))
+    .then(() => debts.debts(owner))
+    .then(asserts.equal(0));
+  });
 
-  it('should not allow not owner to repay');
+  it('should not allow not owner to repay', () => {
+    const owner = accounts[0];
+    const borrower1 = accounts[3];
+    const borrower2 = accounts[4];
+    const value = 1000;
+    return Promise.resolve()
+    .then(() => debts.borrow(value, {from: borrower1}))
+    .then(() => debts.repay(borrower1, value, {from: borrower1}))
+    .then(() => debts.debts(borrower1))
+    .then(asserts.equal(value))
+    .then(() => debts.repay(borrower1, value, {from: borrower2}))
+    .then(() => debts.debts(borrower1))
+    .then(asserts.equal(value))
+  });
 
-  it('should direct you for inventing more tests');
+  it('invented: should fail on overpaying', () => {
+    const owner = accounts[0];
+    const borrower = accounts[3];
+    const value = 1000;
+
+    return Promise.resolve()
+    .then(() => debts.borrow(value, {from: borrower}))
+    .then(() => asserts.throws(debts.repay( borrower, 1 + value, {from: owner})));
+  });
+
 });
