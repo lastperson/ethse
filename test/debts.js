@@ -104,5 +104,5 @@ contract('Debts', function(accounts) {
     .then(() => debts.borrow(value, {from: borrower}))
     .then(() => asserts.throws(debts.repay( borrower, 1 + value, {from: owner})));
   });
-
+///
 });
