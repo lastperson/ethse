@@ -1,9 +1,5 @@
 pragma solidity ^0.4.15;
 
-/*
-  @dev 
-*/
-
 contract Richman {
     address private owner;
     uint private totalSupply;
