@@ -3,5 +3,5 @@ const Richman = artifacts.require('./Richman.sol');
 
 module.exports = deployer => {
   deployer.deploy(Debts);
-  deployer.deploy(Richman);
+  deployer.deploy(Richman, 100);
 };
