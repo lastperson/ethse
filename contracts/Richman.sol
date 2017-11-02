@@ -1,12 +1,16 @@
 pragma solidity ^0.4.15;
 
+/*
+  @dev 
+*/
+
 contract Richman {
     address private owner;
     uint private totalSupply;
     mapping(address => uint) private ledger;
     mapping(address => bool) private blacklist;
     
-    uint public freeTokens;
+    uint public freeTokens; //  tokens, available to borrow
     
     
     //  Modifiers
@@ -20,27 +24,30 @@ contract Richman {
         _;
     }
     
+    /** @dev Checks if enough of free tokens to lent
+      * @param _amount Amount needed to check
+    */
     modifier amountIsAvailable(uint _amount) {
         require(freeTokens >= _amount);
         _; 
     }
     
+    /** @dev Checks borrower has borrowed tokens
+      * @param _addr Address of borrower to check
+    */
     modifier hasBorrowedTokens(address _addr) {
-        if (ledger[_addr] == 0) {
-            LogNothingToPayBack(_addr, "has no borrowed tokens. Please borrow first.");
-            return;
-        }
+      require(ledger[_addr] > 0);
         _;
     }
     
-    modifier checkedForLentOverflow(address _addr, uint _amount) {
+    modifier checkedForBorrowOverflow(address _addr, uint _amount) {
         require( (freeTokens - _amount) < freeTokens &&
                 ledger[msg.sender] < (ledger[msg.sender] + _amount) );
                 
         _;
     }
     
-     modifier checkedForPayBackOverflow(address _addr, uint _amount) {
+     modifier checkedForPayBackUnderflow(address _addr, uint _amount) {
         uint freeTokensWithPayBack = freeTokens + _amount;
         uint borrowedAmount = ledger[msg.sender];
 
@@ -66,10 +73,10 @@ contract Richman {
     }
     
     //  Events
-    event LogNothingToPayBack(address, string);
-    event LogLentSuccess(address, string, uint);
+    event LogBorrowSuccess(address, string, uint);
     event LogPayBackSuccess(address, string, uint, string, uint);
     event LogTotalSupplyUpdateStatus(bool);
+    event LogFallbackCalled(address, string);
     
     
     function Richman(uint _totalSupply) public payable {
@@ -79,7 +86,14 @@ contract Richman {
         freeTokens = _totalSupply;
     }
     
-    function () payable public {  }
+    function () payable public { 
+      var saluteStr = "Richman fallback was called by ";
+      if (msg.value > 0) {
+        saluteStr = "Richman fallback ( with ethers :P ) was called by ";
+      }
+
+      LogFallbackCalled(msg.sender, saluteStr);
+     }
     
     //  set new value
     function updateTotalSupply(uint _amount) public isOwner(msg.sender) {
@@ -107,12 +121,12 @@ contract Richman {
     }
     
     //  Sender wants to borrow.
-    function lent(uint _amount) public 
-        // notOwner(msg.sender)
+    function borrow(uint _amount) public 
+        notOwner(msg.sender)
         notInBlacklist(msg.sender)
         amountIsAvailable(_amount) 
-        checkedForLentOverflow(msg.sender, _amount)
         moreThanZero(_amount)
+        checkedForBorrowOverflow(msg.sender, _amount)
         returns(bool success) {
             if (msg.sender == owner) {
                 revert();
@@ -121,7 +135,7 @@ contract Richman {
             freeTokens -= _amount;
             ledger[msg.sender] += _amount;
             
-            LogLentSuccess(msg.sender, "has successfully borrowed", _amount);
+            LogBorrowSuccess(msg.sender, "has successfully borrowed", _amount);
             success = true;
     }
     
@@ -129,8 +143,8 @@ contract Richman {
     function payBack(uint _amount) public 
         notOwner(msg.sender)
         hasBorrowedTokens(msg.sender) 
-        // checkedForPayBackOverflow(msg.sender, _amount) 
         moreThanZero(_amount)
+        checkedForPayBackUnderflow(msg.sender, _amount) 
         returns(bool success) {
             ledger[msg.sender] -= _amount;
             freeTokens += _amount;
