@@ -103,5 +103,23 @@ contract('Lender', function(accounts) {
     .then(() => lender.requestMoney(value, {from: borrower}))
     .then(() => asserts.throws(lender.returnMoney( borrower, 1 + value, {from: owner})));
   });
+
+  it('invented: don\'t emit event when borrowing 0', () => {
+    const owner = accounts[0];
+    const borrower = accounts[3];
+    const value = 0;
+    return Promise.resolve()
+    .then(() => asserts.throws(lender.requestMoney(value, {from: borrower})));
+  });
+
+  it('invented: don\'t emit event when repaying 0', () => {
+    const owner = accounts[0];
+    const borrower = accounts[3];
+    const value = 1000;
+    return Promise.resolve()
+    .then(() => lender.requestMoney(value, {from: borrower}))
+    .then(() => asserts.throws(lender.returnMoney(0, {from: borrower})));
+  });
+
 ///
 });

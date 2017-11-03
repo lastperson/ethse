@@ -55,6 +55,9 @@ contract Lender {
         if(balanceOf[who] < amount ) {
             revert();
         }
+        if(amount == 0 ) {
+            revert();
+        }
 
         balanceOf[who] -= amount;
         Returned(who, amount);
