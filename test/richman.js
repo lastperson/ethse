@@ -165,4 +165,29 @@ contract('richman', function(accounts) {
     });
   });
 
+  describe('test payback', () => {
+    const borrower = accounts[4];
+    const borrowAmount = 50;
+
+    it('not owner can pay back', () => {
+      return Promise.resolve()
+        .then(() => asserts.throws(richman.payBack(1)))
+        .then(() => richman.borrow(borrowAmount, {from: borrower}))
+        .then(() => asserts.doesNotThrow(richman.payBack(borrowAmount, {from: borrower})));
+    });
+
+    it('has borrowed tokens', () => {
+      return Promise.resolve()
+        .then(() => asserts.throws(richman.payBack(borrowAmount)))
+        .then(() => richman.borrow(borrowAmount, {from: borrower}))
+        .then(() => asserts.doesNotThrow(richman.payBack(borrowAmount, {from: borrower})));
+    });
+
+    it('check pay back underflow', () => {
+      return Promise.resolve()
+      .then(() => richman.borrow(borrowAmount, {from: borrower}))
+      .then(() => asserts.doesNotThrow(richman.payBack(borrowAmount, {from: borrower})));
+    });
+  });
+
 });
