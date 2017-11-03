@@ -47,51 +47,63 @@ contract('richman', function(accounts) {
         .then(() => asserts.throws(richman.updateTotalSupply(updateTotalSupply, {from: updater})));
     });
 
-    describe('test updateTotalSupply updates correctly', () => {
-      it('update before borrow', () => {
-        const updateTotalSupplyLess = 20;
-        const updateTotalSupplyMore = 120;
-        var freeTokensInitial;
+    it('updateTotalSupply before borrow', () => {
+      const updateTotalSupplyLess = 20;
+      const updateTotalSupplyMore = 120;
+      var freeTokensInitial;
 
-        return Promise.resolve()
-          .then(() => richman.freeTokens())
-          .then(free => freeTokensInitial = free.toNumber())
-          .then(() => richman.updateTotalSupply(updateTotalSupplyLess))
-          .then(() => richman.freeTokens())
-          .then((freeTokensLess) => assert.equal(freeTokensLess.toNumber(), updateTotalSupplyLess), 'wrong LESS free amount before borrow')
-          .then(() => richman.updateTotalSupply(updateTotalSupplyMore))
-          .then(() => richman.freeTokens())
-          .then((freeTokensMore) => assert.equal(freeTokensMore.toNumber(), updateTotalSupplyMore), 'wrong MORE free amount before borrow');
-      });
-
-      it('update after borrow', () => {
-        const updateTotalSupply = 120;
-        const borrowAmount = 50;
-        const borrower = accounts[4];
-        var freeTokensInitial;
-
-        return Promise.resolve()
-          .then(() => richman.freeTokens())
-          .then(free => freeTokensInitial = free.toNumber())
-          .then(() => richman.borrow(borrowAmount, {from: borrower}))
-          .then(() => richman.updateTotalSupply(updateTotalSupply))
-          .then(() => richman.freeTokens())
-          .then((freeTokens) => assert.equal(freeTokens.toNumber(), updateTotalSupply - borrowAmount), 'wrong free amount after borrow');
-      });
-
-      it('update after borrow with wrong amount', () => {
-        const updateTotalSupply = 20;
-        const borrowAmount = 50;
-        const borrower = accounts[4];
-        var freeTokensInitial;
-
-        return Promise.resolve()
-          .then(() => richman.freeTokens())
-          .then(free => freeTokensInitial = free.toNumber())
-          .then(() => richman.borrow(borrowAmount, {from: borrower}))
-          .then(() => asserts.throws(richman.updateTotalSupply(updateTotalSupply)));
-      });
+      return Promise.resolve()
+        .then(() => richman.freeTokens())
+        .then(free => freeTokensInitial = free.toNumber())
+        .then(() => richman.updateTotalSupply(updateTotalSupplyLess))
+        .then(() => richman.freeTokens())
+        .then((freeTokensLess) => assert.equal(freeTokensLess.toNumber(), updateTotalSupplyLess), 'wrong LESS free amount before borrow')
+        .then(() => richman.updateTotalSupply(updateTotalSupplyMore))
+        .then(() => richman.freeTokens())
+        .then((freeTokensMore) => assert.equal(freeTokensMore.toNumber(), updateTotalSupplyMore), 'wrong MORE free amount before borrow');
     });
 
+    it('updateTotalSupply after borrow', () => {
+      const updateTotalSupply = 120;
+      const borrowAmount = 50;
+      const borrower = accounts[4];
+      var freeTokensInitial;
+
+      return Promise.resolve()
+        .then(() => richman.freeTokens())
+        .then(free => freeTokensInitial = free.toNumber())
+        .then(() => richman.borrow(borrowAmount, {from: borrower}))
+        .then(() => richman.updateTotalSupply(updateTotalSupply))
+        .then(() => richman.freeTokens())
+        .then((freeTokens) => assert.equal(freeTokens.toNumber(), updateTotalSupply - borrowAmount), 'wrong free amount after borrow');
+    });
+
+    it('updateTotalSupply after borrow with wrong amount', () => {
+      const updateTotalSupply = 20;
+      const borrowAmount = 50;
+      const borrower = accounts[4];
+      var freeTokensInitial;
+
+      return Promise.resolve()
+        .then(() => richman.freeTokens())
+        .then(free => freeTokensInitial = free.toNumber())
+        .then(() => richman.borrow(borrowAmount, {from: borrower}))
+        .then(() => asserts.throws(richman.updateTotalSupply(updateTotalSupply)));
+    });
   });
+
+  describe('test blacklist', () => {
+    const blackAddress = accounts[4];
+
+    it('owner can update blacklist', () => {  
+      return Promise.resolve()
+        .then(() => richman.updateAddressAsBlacklisted(blackAddress, true));
+    });
+
+    it('not owner can not update blacklist', () => {
+      return Promise.resolve()
+        .then(() => asserts.throws(richman.updateAddressAsBlacklisted(blackAddress, true, {from: blackAddress})));
+    });
+  });
+
 });
