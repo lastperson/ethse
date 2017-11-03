@@ -106,4 +106,27 @@ contract('richman', function(accounts) {
     });
   });
 
+  describe('test showDebt', () => {
+    const borrower = accounts[4];
+    const borrowAmount = 50;
+
+    it('check from user', () => {
+      return Promise.resolve()
+        .then(() => richman.showDebt({from: borrower}))
+        .then((debt) => assert.equal(debt.toNumber(), 0, 'Initial debt must be 0'))
+        .then(() => richman.borrow(borrowAmount, {from: borrower}))
+        .then(() => richman.showDebt({from: borrower}))
+        .then((debt) => assert.equal(debt.toNumber(), borrowAmount, 'Initial debt must be equal to borrowed'))
+    });
+
+    it('check from user', () => {
+      return Promise.resolve()
+        .then(() => richman.showDebtFor(borrower, {from: OWNER}))
+        .then((debt) => assert.equal(debt.toNumber(), 0, 'Initial debt must be 0'))
+        .then(() => richman.borrow(borrowAmount, {from: borrower}))
+        .then(() => richman.showDebt({from: borrower}))
+        .then((debt) => assert.equal(debt.toNumber(), borrowAmount, 'Initial debt must be equal to borrowed'))
+    });
+  });
+
 });

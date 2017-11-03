@@ -72,7 +72,7 @@ contract Richman {
     event LogBorrowSuccess(address _addr, uint _amount);
     event LogPayBackSuccess(address _addr, uint _amount, string _str, uint _debt);
     event LogTotalSupplyUpdateStatus(bool success);
-    event LogFallbackCalled(address, string);
+    event LogFallbackCalled(address _addr, string _str);
     
     
     function Richman(uint _totalSupply) public payable {
@@ -157,8 +157,9 @@ contract Richman {
     }
     
     //  Only owner can check others debt.
-    function showDebt(address _addr) public constant 
+    function showDebtFor(address _addr) public constant 
         isOwner(msg.sender) 
+        isValidAddress(_addr)
         returns(uint debt) {
             debt = ledger[_addr];
     }
