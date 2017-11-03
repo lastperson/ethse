@@ -69,9 +69,9 @@ contract Richman {
     }
     
     //  Events
-    event LogBorrowSuccess(address, string, uint);
-    event LogPayBackSuccess(address, string, uint, string, uint);
-    event LogTotalSupplyUpdateStatus(bool);
+    event LogBorrowSuccess(address _addr, uint _amount);
+    event LogPayBackSuccess(address _addr, uint _amount, string _str, uint _debt);
+    event LogTotalSupplyUpdateStatus(bool success);
     event LogFallbackCalled(address, string);
     
     
@@ -98,7 +98,7 @@ contract Richman {
         //  new total supply must be more or equal to already lent tokens
         if (lentTokens > _amount) {
             LogTotalSupplyUpdateStatus(false);
-            return;
+            revert();
         }
         
         totalSupply = _amount;
@@ -131,7 +131,7 @@ contract Richman {
             freeTokens -= _amount;
             ledger[msg.sender] += _amount;
             
-            LogBorrowSuccess(msg.sender, "has successfully borrowed", _amount);
+            LogBorrowSuccess(msg.sender, _amount);
             success = true;
     }
     
@@ -145,7 +145,7 @@ contract Richman {
             ledger[msg.sender] -= _amount;
             freeTokens += _amount;
             
-            LogPayBackSuccess(msg.sender, "has successfully borrowed", _amount, "Debt is:", ledger[msg.sender]);
+            LogPayBackSuccess(msg.sender, _amount, "Debt is:", ledger[msg.sender]);
             success = true;
     }
     

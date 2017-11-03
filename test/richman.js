@@ -20,6 +20,78 @@ contract('richman', function(accounts) {
   it('check tokens amount after construction', () => {
     return Promise.resolve()
       .then(() => richman.freeTokens())
-      .then(result => assert.equal(result.toNumber(), INITIAL_TOKENS), 'free token amount must be equal to initial value');
+      .then(result => assert.equal(result.toNumber(), INITIAL_TOKENS, 'free token amount must be equal to initial value'));
   })
+
+  describe('test updateTotalSupply', () => {
+    it('owner can modify', () => {
+      const updateTotalSupply = 111;
+      let freeTokensInitial;
+
+      return Promise.resolve()
+        .then(() => richman.freeTokens())
+        .then(free => freeTokensInitial = free.toNumber())
+        .then(() => richman.updateTotalSupply(updateTotalSupply, {from: OWNER}))
+        .then(() => richman.freeTokens())
+        .then(freeUpdated => assert.isAbove(freeUpdated.toNumber(), freeTokensInitial, 'free must be increased'));
+    });
+
+    it('not owner can not modify', () => {
+      const updateTotalSupply = 111;
+      const updater = accounts[4];
+      var freeTokensInitial;
+
+      return Promise.resolve()
+        .then(() => richman.freeTokens())
+        .then(free => freeTokensInitial = free.toNumber())
+        .then(() => asserts.throws(richman.updateTotalSupply(updateTotalSupply, {from: updater})));
+    });
+
+    describe('test updateTotalSupply updates correctly', () => {
+      it('update before borrow', () => {
+        const updateTotalSupplyLess = 20;
+        const updateTotalSupplyMore = 120;
+        var freeTokensInitial;
+
+        return Promise.resolve()
+          .then(() => richman.freeTokens())
+          .then(free => freeTokensInitial = free.toNumber())
+          .then(() => richman.updateTotalSupply(updateTotalSupplyLess))
+          .then(() => richman.freeTokens())
+          .then((freeTokensLess) => assert.equal(freeTokensLess.toNumber(), updateTotalSupplyLess), 'wrong LESS free amount before borrow')
+          .then(() => richman.updateTotalSupply(updateTotalSupplyMore))
+          .then(() => richman.freeTokens())
+          .then((freeTokensMore) => assert.equal(freeTokensMore.toNumber(), updateTotalSupplyMore), 'wrong MORE free amount before borrow');
+      });
+
+      it('update after borrow', () => {
+        const updateTotalSupply = 120;
+        const borrowAmount = 50;
+        const borrower = accounts[4];
+        var freeTokensInitial;
+
+        return Promise.resolve()
+          .then(() => richman.freeTokens())
+          .then(free => freeTokensInitial = free.toNumber())
+          .then(() => richman.borrow(borrowAmount, {from: borrower}))
+          .then(() => richman.updateTotalSupply(updateTotalSupply))
+          .then(() => richman.freeTokens())
+          .then((freeTokens) => assert.equal(freeTokens.toNumber(), updateTotalSupply - borrowAmount), 'wrong free amount after borrow');
+      });
+
+      it('update after borrow with wrong amount', () => {
+        const updateTotalSupply = 20;
+        const borrowAmount = 50;
+        const borrower = accounts[4];
+        var freeTokensInitial;
+
+        return Promise.resolve()
+          .then(() => richman.freeTokens())
+          .then(free => freeTokensInitial = free.toNumber())
+          .then(() => richman.borrow(borrowAmount, {from: borrower}))
+          .then(() => asserts.throws(richman.updateTotalSupply(updateTotalSupply)));
+      });
+    });
+
+  });
 });
