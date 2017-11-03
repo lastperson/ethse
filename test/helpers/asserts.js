@@ -10,4 +10,7 @@ module.exports = assert => ({
   throws: promise => {
     return promise.then(assert.fail, () => true);
   },
+  doesNotThrow: promise => {
+    return promise.then(() => true, assert.fail);
+  },
 });

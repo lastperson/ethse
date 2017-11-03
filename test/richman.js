@@ -7,6 +7,7 @@ contract('richman', function(accounts) {
   afterEach('revert', reverter.revert);
 
   const asserts = Asserts(assert);
+  const MAX_INT = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
   const OWNER = accounts[0];
   const INITIAL_TOKENS = 100;
   let richman;
@@ -126,6 +127,41 @@ contract('richman', function(accounts) {
         .then(() => richman.borrow(borrowAmount, {from: borrower}))
         .then(() => richman.showDebt({from: borrower}))
         .then((debt) => assert.equal(debt.toNumber(), borrowAmount, 'Initial debt must be equal to borrowed'))
+    });
+  });
+
+  describe('test borrow', () => {
+    const borrower = accounts[4];
+    const borrowAmount = 50;
+
+    it('not owner can borrow', () => {
+      return Promise.resolve()
+        .then(() => asserts.throws(richman.borrow(1)))
+        .then(() => asserts.doesNotThrow(richman.borrow(1, {from: borrower})));
+    });
+
+    it('blacklisted can not borrow', () => {
+      return Promise.resolve()
+        .then(() => richman.updateAddressAsBlacklisted(borrower, true))
+        .then(() => asserts.throws(richman.borrow(borrowAmount, {from: borrower})));
+    });
+
+    it('amount is available', () => {
+      return Promise.resolve()
+        .then(() => asserts.doesNotThrow(richman.borrow(1, {from: borrower})))
+        .then(() => asserts.throws(richman.borrow(INITIAL_TOKENS, {from: borrower})));
+    });
+
+    it('more than zero', () => {
+      return Promise.resolve()
+      .then(() => asserts.doesNotThrow(richman.borrow(1, {from: borrower})))
+      .then(() => asserts.throws(richman.borrow(0, {from: borrower})));
+    });
+
+    it('check for borrow overflow', () => {
+      return Promise.resolve()
+        .then(() => asserts.doesNotThrow(richman.borrow(1, {from: borrower})))
+        .then(() => asserts.throws(richman.borrow(MAX_INT, {from: borrower})));
     });
   });
 
