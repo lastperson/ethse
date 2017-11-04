@@ -59,6 +59,17 @@ contract('Promiser', function(accounts) {
       await asserts.throws(promiser.borrow(value, {from: borrower}));
     });
 
+    it('should emit Borrow event', async () => {
+      const borrower = accounts[3];
+      const value = 10;
+
+      let result = await promiser.borrow(value, {from: borrower});
+      assert.equal(result.logs.length, 1);
+      assert.equal(result.logs[0].event, 'Borrow');
+      assert.equal(result.logs[0].args.user, borrower);
+      assert.equal(result.logs[0].args.amount.toNumber(), value);
+    });
+
   });
 
   describe('Refund', () => {
@@ -130,6 +141,18 @@ contract('Promiser', function(accounts) {
 
       // payback money too much
       await asserts.throws(promiser.refund(borrower, value + 1, {from: OWNER}));
+    });
+
+    it('should emit Refund event', async () => {
+      const borrower = accounts[3];
+      const value = 10;
+
+      await promiser.borrow(value, {from: borrower});
+      let result = await promiser.refund(borrower, value, {from: OWNER});
+      assert.equal(result.logs.length, 1);
+      assert.equal(result.logs[0].event, 'Refund');
+      assert.equal(result.logs[0].args.user, borrower);
+      assert.equal(result.logs[0].args.amount.toNumber(), value);
     });
 
   });

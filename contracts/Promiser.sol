@@ -54,6 +54,6 @@ contract Promiser {
     {
         debts[borrower] -= amount;
         balance += amount;
-        Refund(msg.sender, amount);
+        Refund(borrower, amount);
     }
 }
