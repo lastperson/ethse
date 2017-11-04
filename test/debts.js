@@ -10,10 +10,9 @@ contract('Debts', function(accounts) {
   const OWNER = accounts[0];
   let debts;
 
-  before('setup', () => {
-    return Debts.deployed()
-    .then(instance => debts = instance)
-    .then(reverter.snapshot);
+  before('setup', async () => {
+    debts = await Debts.deployed();
+    return reverter.snapshot();
   });
 
   it('should allow to repay', async () => {

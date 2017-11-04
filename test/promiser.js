@@ -10,12 +10,10 @@ contract('Promiser', function(accounts) {
   const OWNER = accounts[0];
   let promiser, initBalance;
 
-  before('setup', () => {
-    return Promiser.deployed()
-    .then(instance => promiser = instance)
-    .then(() => promiser.balance())
-    .then(balance => initBalance = balance)
-    .then(reverter.snapshot);
+  before('setup', async () => {
+    promiser = await Promiser.deployed();
+    initBalance = await promiser.balance();
+    return reverter.snapshot();
   });
 
   describe('Borrow', () => {
