@@ -12,9 +12,23 @@ contract('Promiser', function(accounts) {
 
   before('setup', async () => {
     promiser = await Promiser.deployed();
-    initBalance = await promiser.balance();
+    initBalance = (await promiser.balance()).toNumber();
     return reverter.snapshot();
   });
+
+  const assertBorrowedAmount = async (borrower, debt, balance) => {
+    await Promise.all([
+      (async () => {
+        let result = await promiser.debts(borrower);
+        assert.equal(result.toNumber(), debt);
+      })(),
+      (async () => {
+        let result = await promiser.balance();
+        assert.equal(result.toNumber(), balance);
+      })(),
+    ]);
+    return true;
+  };
 
   describe('Borrow', () => {
 
@@ -29,15 +43,8 @@ contract('Promiser', function(accounts) {
       const borrower = accounts[3];
       const value = 10;
 
-      let result;
-
       await promiser.borrow(value, {from: borrower});
-      // address debt balance check
-      result = await promiser.debts(borrower);
-      assert.equal(result.toNumber(), value);
-      // contract balance check
-      result = await promiser.balance();
-      assert.equal(result.toNumber(), initBalance.toNumber() - value);
+      await assertBorrowedAmount(borrower, value, initBalance - value);
     });
 
     it('fail because contract has balance less than requested sum', async () => {
@@ -92,35 +99,22 @@ contract('Promiser', function(accounts) {
       const borrower = accounts[3];
       const value = 10;
 
-      let result;
-
       // borrow some money first
       await promiser.borrow(value, {from: borrower});
-      result = await promiser.debts(borrower);
-      assert.equal(result.toNumber(), value);
-      result = await promiser.balance();
-      assert.equal(result.toNumber(), initBalance - value);
+      await assertBorrowedAmount(borrower, value, initBalance - value);
 
       // payback money
       await promiser.refund(borrower, value, {from: OWNER});
-      result = await promiser.debts(borrower);
-      assert.equal(result.toNumber(), 0);
-      result = await promiser.balance();
-      assert.equal(result.toNumber(), initBalance);
+      await assertBorrowedAmount(borrower, 0, initBalance);
     });
 
     it('fail because only owner can perform this action', async () => {
       const borrower = accounts[3];
       const value = 10;
 
-      let result;
-
       // borrow some money first
       await promiser.borrow(value, {from: borrower});
-      result = await promiser.debts(borrower);
-      assert.equal(result.toNumber(), value);
-      result = await promiser.balance();
-      assert.equal(result.toNumber(), initBalance - value);
+      await assertBorrowedAmount(borrower, value, initBalance - value);
 
       // payback money by borrower
       await asserts.throws(promiser.refund(borrower, value, {from: borrower}));
@@ -130,14 +124,9 @@ contract('Promiser', function(accounts) {
       const borrower = accounts[3];
       const value = 10;
 
-      let result;
-
       // borrow some money first
       await promiser.borrow(value, {from: borrower});
-      result = await promiser.debts(borrower);
-      assert.equal(result.toNumber(), value);
-      result = await promiser.balance();
-      assert.equal(result.toNumber(), initBalance - value);
+      await assertBorrowedAmount(borrower, value, initBalance - value);
 
       // payback money too much
       await asserts.throws(promiser.refund(borrower, value + 1, {from: OWNER}));
