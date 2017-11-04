@@ -171,6 +171,3 @@ contract('Debts', function(accounts) {
     .then(asserts.equal(secondRepay));
   });
 });
-
-  
-
