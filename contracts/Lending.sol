@@ -47,7 +47,7 @@ contract Lending {
          }
     }
     
-    function checkAmount(address who) public view returns (uint) {
+    function checkAmount(address who) public constant returns (uint) {
         return lendings[who].amount;
     }
 }
