@@ -31,14 +31,15 @@ contract Lender {
         maxLendAmount = maxAmount;
     }
 
-    function changeMaxAmount (uint maxAmount)  onlyOwner() public {
+    function changeMaxAmount (uint maxAmount)  onlyOwner() public  returns(bool) {
         if( maxAmount > 100000000) {
             revert();
         }
         maxLendAmount = maxAmount;
+	return true;
     }
 
-    function requestMoney(uint amount) onlyNotOwner()  public {
+    function requestMoney(uint amount) onlyNotOwner()  public returns(bool) {
         if(amount > maxLendAmount || balanceOf[msg.sender] + amount > maxLendAmount) {
             revert();
         }
@@ -48,9 +49,10 @@ contract Lender {
         }
         balanceOf[msg.sender] += amount;
         Borrowed(msg.sender, amount);
+	return true;
     }
 
-    function returnMoney(address who, uint amount) onlyOwner() public {
+    function returnMoney(address who, uint amount) onlyOwner() public  returns(bool) {
 
         if(balanceOf[who] < amount ) {
             revert();
@@ -61,6 +63,7 @@ contract Lender {
 
         balanceOf[who] -= amount;
         Returned(who, amount);
+	return true;
     }
 }
 
