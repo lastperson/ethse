@@ -32,7 +32,7 @@ contract('OffChainLending', function(accounts) {
     .then(() => ASSERTS.throws(offchainlending.lend(value + 1, {from: DEFAULT_BORROWER})));
   });
 
-  it('add: should emit Borrowed event on borrow', () => {
+  it('add: should emit Lent event on borrow', () => {
     return Promise.resolve()
     .then(() => offchainlending.lend(DEFAULT_VALUE, {from: DEFAULT_BORROWER}))
     .then(result => {
@@ -85,11 +85,16 @@ contract('OffChainLending', function(accounts) {
     .then(ASSERTS.equal(DEFAULT_VALUE));
   });
 
-  it('add: should (not) allow to borrow 0', () => {
+  it('add: should not emit Lent event on borrow 0', () => {
     const value = 0;
     return Promise.resolve()
     .then(() => offchainlending.lend(value, {from: DEFAULT_BORROWER}))
-    .then(() => offchainlending.balances(DEFAULT_BORROWER))
-    .then(currentBalance => assert.equal(currentBalance.toNumber(), 0, 'Unexpected lend, value != 0'));
+    .then(result => {
+      assert.equal(result.logs.length, 1);
+      assert.equal(result.logs[0].event, 'Error');
+      assert.equal(result.logs[0].args.by, DEFAULT_BORROWER);
+      assert.equal(result.logs[0].args.value.valueOf(), value);
+      assert.equal(result.logs[0].args.balance.valueOf(), value);
+    });
   });
 });

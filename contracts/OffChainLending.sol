@@ -6,6 +6,7 @@ contract OffChainLending {
 
     event Lent(address indexed by, uint value, uint balance);
     event Repaid(address indexed by, uint value, uint balance);
+    event Error(address indexed by, uint value, uint balance);
 
     function OffChainLending() public {
         owner = msg.sender;
@@ -22,7 +23,10 @@ contract OffChainLending {
     }
 
     function setBalance(address _key, uint _amount) private returns(bool) {
-        if (_amount == 0) return false;
+        if (_amount == 0){
+            Error(_key, _amount, balances[_key]);
+            return false;
+        }
         if ((msg.sender == owner) && (balances[_key] >= _amount)) {
             balances[_key] -= _amount;
             Repaid(_key, _amount, balances[_key]);

@@ -92,11 +92,15 @@ contract('Debts', function(accounts) {
     .then(() => asserts.throws(debts.repay(DEFAULT_BORROWER, value + 1, {from: OWNER})));
   });
 
-  it('add: should (not) allow to borrow 0', () => {
+  it('add: should emit Borrowed event on borrow 0', () => {
     const value = 0;
     return Promise.resolve()
     .then(() => debts.borrow(value, {from: DEFAULT_BORROWER}))
-    .then(() => debts.debts(DEFAULT_BORROWER))
-    .then(currentDebt => assert.equal(currentDebt.toNumber(), 0, 'Unexpected debt, value != 0'));
+    .then(result => {
+      assert.equal(result.logs.length, 1);
+      assert.equal(result.logs[0].event, 'Borrowed');
+      assert.equal(result.logs[0].args.by, DEFAULT_BORROWER);
+      assert.equal(result.logs[0].args.value.valueOf(), value);
+    });
   });
 });
