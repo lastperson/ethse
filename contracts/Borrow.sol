@@ -44,7 +44,7 @@ contract Borrow {
                       debts[id].amount);
     }
 
-    function showDebt(uint id) public returns (address, address, uint) {
+    function showDebt(uint id) public constant returns (address, address, uint) {
         return (debts[id].taker, debts[id].giver, debts[id].amount);
     }
 }

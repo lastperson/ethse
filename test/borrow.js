@@ -21,7 +21,7 @@ contract('Borrow', function(accounts) {
     const amount = 1000;
     return Promise.resolve()
     .then(() => borrow.createDebt(giver, amount, {from: taker}))
-    .then(() => borrow.showDebt.call(0))
+    .then(() => borrow.showDebt(0))
     .then((result) => {
       assert.equal(result[0], taker);
       assert.equal(result[1], giver);
@@ -63,7 +63,7 @@ contract('Borrow', function(accounts) {
     return Promise.resolve()
     .then(() => borrow.createDebt(giver, amount, {from: taker}))
     .then(() => borrow.decDebt(id, decAmount, {from: giver}))
-    .then(() => borrow.showDebt.call(id))
+    .then(() => borrow.showDebt(id))
     .then((result) => {
       assert.equal(result[2].valueOf(), leftAmount);
     });
@@ -99,7 +99,7 @@ contract('Borrow', function(accounts) {
     .then(() => asserts.throws(borrow.decDebt(id, decAmount, {from: giver})));
   });    
 
-  it('only giver can decrease debt', () => {
+  it('should fail if stranger tries to decrease debt amount', () => {
     const giver = accounts[3];
     const taker = accounts[4];
     const stranger = accounts[5];
