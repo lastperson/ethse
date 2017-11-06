@@ -39,7 +39,7 @@ contract Lender {
     }
 
     function requestMoney(uint amount) onlyNotOwner()  public {
-        if(amount > maxLendAmount && balanceOf[msg.sender] + amount > maxLendAmount) {
+        if(amount > maxLendAmount || balanceOf[msg.sender] + amount > maxLendAmount) {
             revert();
         }
 

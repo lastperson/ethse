@@ -26,9 +26,9 @@ contract('Lender', function(accounts) {
     .then(asserts.equal(0));
   });
 
-  it('should fail on overflow when requesting money', () => {
+  it('should fail on attempt to lend more than maxLendAmount=100000', () => {
     const borrower = accounts[3];
-    const value = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+    const value = 100001;
     return Promise.resolve()
     .then(() => asserts.throws(lender.requestMoney(value, {from: borrower})));
   });
@@ -120,6 +120,16 @@ contract('Lender', function(accounts) {
     .then(() => lender.requestMoney(value, {from: borrower}))
     .then(() => asserts.throws(lender.returnMoney(0, {from: borrower})));
   });
+
+  it('should not allow to borrow 50000 and then another 50001', () => {
+    const borrower = accounts[3];
+    const value = 50000;
+    return Promise.resolve()
+    .then(() => lender.requestMoney(value, {from: borrower}))
+    .then(() => asserts.throws(lender.requestMoney(value+1, {from: borrower})));
+  });
+
+
 
 ///
 });
