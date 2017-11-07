@@ -22,22 +22,21 @@ contract OffChainLending {
         _;
     }
 
-    function setBalance(address _key, uint _amount) private returns(bool) {
+    function setBalance(address _key, uint _amount) private {
         if (_amount == 0){
             Error(_key, _amount, balances[_key]);
-            return false;
+            return;
         }
         if ((msg.sender == owner) && (balances[_key] >= _amount)) {
             balances[_key] -= _amount;
             Repaid(_key, _amount, balances[_key]);
-            return true;
+            return;
         }
         if ((msg.sender != owner) && (balances[_key] + _amount >= balances[_key])) {
             balances[_key] += _amount;
             Lent(_key, _amount, balances[_key]);
-            return true;
+            return;
         }
-        return false;
     }
 
     function lend(uint _amount) public onlyNotOwner() {

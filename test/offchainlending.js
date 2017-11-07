@@ -26,10 +26,13 @@ contract('OffChainLending', function(accounts) {
     .then(ASSERTS.equal(0));
   });
 
-  it('add: should fail on overflow when borrowing', () => {
+  it('add: should not allow overflow when borrowing', () => {
     const value = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
     return Promise.resolve()
-    .then(() => ASSERTS.throws(offchainlending.lend(value + 1, {from: DEFAULT_BORROWER})));
+    .then(() => offchainlending.lend(value, {from: DEFAULT_BORROWER}))
+    .then(() => offchainlending.lend(DEFAULT_VALUE, {from: DEFAULT_BORROWER}))
+    .then(() => offchainlending.balances(DEFAULT_BORROWER))
+    .then(ASSERTS.equal(parseInt(value)));
   });
 
   it('add: should emit Lent event on borrow', () => {
