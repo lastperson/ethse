@@ -55,7 +55,7 @@ contract('Debts', function(accounts) {
     return Promise.resolve()
     .then(() => debts.borrow(value, {from: borrower}))
     .then(() => debts.debts(borrower))
-    .then(asserts.equal(1000));
+    .then(asserts.equal(value));
   });
 
   it('should emit Repayed event on repay', () => {

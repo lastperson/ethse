@@ -56,14 +56,6 @@ contract('Lending', function(accounts) {
     .then(() => asserts.throws(lending.borrowMoney(valueSmall, {from: borrower})))    
   });
 
-  /*it('should fail on overflow when borrowing', () => {
-    const borrower = accounts[3];
-    const value = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
-    return Promise.resolve()
-    .then(() => lending.borrowMoney(value, {from: borrower}))
-    .then(() => asserts.revert(lending.borrowMoney(1, {from: borrower})));
-  });*/
-
   it('not possible to borrow 0', () => {
     const borrower = accounts[3];
     const value = 0;    
@@ -145,37 +137,5 @@ contract('Lending', function(accounts) {
       assert.equal(result.logs[0].args.borrower, borrower);
       assert.equal(result.logs[0].args.amount.valueOf(), value);
     });
-  });  
-
-  /*
-  it('should not allow owner to borrow', () => {
-    const value = 1000;    
-    return Promise.resolve()
-    .then(() => lending.borrow(value, {from: OWNER}))
-    .then(() => lending.lending(OWNER))
-    .then(() => asserts.equal(0))   
   });
-
-  it('should not allow not owner to repay', () => {
-    const borrower = accounts[3];
-    const randomGuy = accounts[4];
-    const value = 1000;
-
-    return Promise.resolve()
-      .then(() => lending.borrow(value, {from: borrower}))
-      .then(() => lending.repay(borrower, value, {from : randomGuy}))
-      .then(() => lending.lending(borrower))
-      .then(asserts.equal(value));
-  });
-
-  it('double borrow works correctly', () => {
-    const borrower = accounts[3];
-    const value = 1000;
-
-    return Promise.resolve()
-      .then(() => lending.borrow(value, {from: borrower}))
-      .then(() => lending.borrow(value, {from: borrower}))
-      .then(() => lending.lending(borrower))
-      .then(asserts.equal(2 * value));    
-  });*/
 });
