@@ -37,7 +37,8 @@ contract Borrow {
         if (_amount == 0) {
             Error("Zero is not valid");
             return false;
-        } else if (requested[msg.sender] + _amount < requested[msg.sender]) {
+        } 
+        if (requested[msg.sender] + _amount < requested[msg.sender]) {
             Error("it's Overflow");
             return false;
         } else {
@@ -48,16 +49,17 @@ contract Borrow {
     
     //Borrower can cancel his request 
     function reduceRequestBorrow(uint _amount) onlyNotOwner public returns(bool success) {
-            if (_amount == 0) {
+        if (_amount == 0) {
             Error("Zero is not valid");
             return false;
-            } else if (requested[msg.sender] - _amount > requested[msg.sender]) {
-                Error("You're trying to reduce more than you requested");
-                return false;
-            } else {
-                requested[msg.sender] -= _amount;
-                return true;
-            }
+        }  
+        if (_amount > requested[msg.sender]) {
+            Error("You're trying to reduce more than you requested");
+            return false;
+        } else {
+            requested[msg.sender] -= _amount;
+            return true;
+        }
     }
     
     function approveBorrow(address _requester, uint _amount) onlyOwner public returns(bool success) {
@@ -67,14 +69,15 @@ contract Borrow {
         if (_amount == 0) {
             Error("Zero is not valid");
             return false;
-        } else if (_amount <= amount) {
-            borrows[_requester] += _amount;
-            requested[_requester] -= amount;
-            Borrowed(_requester, _amount);
-            return true;
-        } else {
+        }
+        if (_amount > amount) {
             Error("This borrower didn't request so much");
             return false;
+        } else {
+            borrows[_requester] += _amount;
+            requested[_requester] = 0;
+            Borrowed(_requester, _amount);
+            return true;
         }
     }
     
@@ -82,11 +85,11 @@ contract Borrow {
         if (_amount == 0) {
             Error("Zero is not valid");
             return false;
-        } else if (borrows[msg.sender] - _amount > borrows[msg.sender]) {
-            Error("it's Underflow");
+        } 
+        if (_amount > borrows[msg.sender]) {
+            Error("You didn't borrow so much");
             return false;
         } else {
-            require(borrows[msg.sender] >= _amount);
             borrows[msg.sender] -= _amount;
             sent[msg.sender] += _amount;
             return true;

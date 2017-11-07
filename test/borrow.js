@@ -176,7 +176,7 @@ contract('Borrow', function(accounts) {
     .then(asserts.equal(value));
   });
 
-  it('should not to be overpaid when repaing', () => {
+  it('should not be overpaid when repaing', () => {
     const borrower = accounts[3];
     const value = 420;
     const overPaid = 450;
