@@ -11,61 +11,55 @@ contract XO {
     uint public secondsPerMove;
     byte[3][3] public field;
     uint public lastMoveTS;
+    uint public noPenaltySecondsPerMove;
+    uint public playerXPenalty;
+    uint public playerOPenalty;
     
-    event Draw(uint amountReturned);
+    event Draw(uint amountReturnedX, uint amountReturnedO );
     event PlayerWon(address player, uint amountWon);
+    event Move(uint coordX, uint coordY, byte move);
+    event Penalty(address player);
 
-    function XO(uint minPrice, uint secs) public {
+    function XO(uint minPrice, uint timeoutSecs, uint noPenaltySecs) public {
 
-        if(minPrice == 0 || secs == 0 ) {
-            revert();
-        }
+        require(minPrice > 0 && timeoutSecs > 0 && noPenaltySecs > 0);
+        require(timeoutSecs > noPenaltySecs);
         
         owner = msg.sender;
         gameStatus = "Waiting playerX bet";
         minGamePrice = minPrice;
-        secondsPerMove = secs;
+        secondsPerMove = timeoutSecs;
+        noPenaltySecondsPerMove = noPenaltySecs;
+        
     }
 
+    function makeAMove(uint coordX, uint coordY, byte move) internal {
+        field[coordX][coordY] = move;
+        lastMoveTS = now;
+        Move(coordX, coordY, move);
+    }
+    
     function playerXBet(uint coordX, uint coordY) public payable returns(bool) {
 
-        if(gameStatus != "Waiting playerX bet") {
-            revert();
-        }
-        
-        if(msg.value < minGamePrice)  {
-            revert();
-        }
-        
-        if(coordX >2 || coordY >2) {
-            revert();
-        }
-        
+        require(gameStatus == "Waiting playerX bet");
+        require(msg.value >= minGamePrice);
+        require(coordX <=2 && coordY <=2);
+            
         playerX = msg.sender;
         gamePrice = msg.value;
         gameStatus = "Waiting playerO accept";
-        field[coordX][coordY] = "X";
-        lastMoveTS = now;
+        makeAMove(coordX, coordY, "X");
         return true;
     }
 
     function playerOAccept(uint coordX, uint coordY) public payable returns(bool) {
 
-        if(gameStatus != "Waiting playerO accept") {
-            revert();
-        }
-        
-        if(msg.value < gamePrice)  {
-            revert();
-        }
-        
-        if(coordX >2 || coordY >2) {
-            revert();
-        }
-        
-        if(field[coordX][coordY] == "X") {
-            revert();
-        }
+        require(gameStatus == "Waiting playerO accept");
+        require(msg.value >= gamePrice);
+        require(coordX <=2 && coordY <=2);
+        require(field[coordX][coordY] != "X");
+        //players should use different addresses
+        require(msg.sender != playerX);
         
         //too much money sent, sent back the change
         if(msg.value > gamePrice) {
@@ -74,8 +68,7 @@ contract XO {
         
         playerO = msg.sender;
         gameStatus = "Waiting playerX move";
-        field[coordX][coordY] = "O";
-        lastMoveTS = now;
+        makeAMove(coordX, coordY, "O");
         return true;
     }
     
@@ -90,9 +83,20 @@ contract XO {
         field[2][1] = "_";
         field[2][2] = "_";
         gameStatus = "Waiting playerX bet";
+        playerXPenalty = 0;
+        playerOPenalty = 0;
     }
     
-    function setWinner(address player) internal {
+    function setWinner(byte letter) internal {
+        
+        address player;
+        
+        if(letter == "X") {
+            player = playerX;
+        } else {
+            player = playerO;
+        }
+        
         PlayerWon(player, this.balance);
         player.transfer(this.balance);
         restartGame();
@@ -100,83 +104,43 @@ contract XO {
     
     function checkWinner() internal returns (bool) {
 
-        if(field[0][0]=="X" && field[1][0] == "X" && field[2][0] == "X") {
-            setWinner(playerX);    
+        if(field[0][0] == field[1][0] && field[1][0] == field[2][0] && (field[0][0] == "X" || field[0][0] == "O")) {
+            setWinner(field[0][0]);    
+            return true;
+        }
+
+        if(field[0][1] == field[1][1] && field[1][1] == field[2][1] && (field[0][1] == "X" || field[0][1] == "O")) {
+            setWinner(field[0][1]);    
             return true;
         }
         
-        if(field[0][0]=="O" && field[1][0] == "O" && field[2][0] == "O") {
-            setWinner(playerO);    
+        if(field[0][2] == field[1][2] && field[1][2] == field[2][2] && (field[0][2] == "X" || field[0][2] == "O")) {
+            setWinner(field[0][2]);    
             return true;
         }
         
-        if(field[0][1]=="X" && field[1][1] == "X" && field[2][1] == "X") {
-            setWinner(playerX);    
+        if(field[0][0] == field[0][1] && field[0][1] == field[0][2] && (field[0][0] == "X" || field[0][0] == "O")) {
+            setWinner(field[0][0]);    
             return true;
         }
-        
-        if(field[0][1]=="O" && field[1][1] == "O" && field[2][1] == "O") {
-            setWinner(playerO);    
+
+        if(field[1][0] == field[1][1] && field[1][1] == field[1][2] && (field[1][0] == "X" || field[1][0] == "O")) {
+            setWinner(field[1][0]);    
             return true;
         }
-        
-        if(field[0][2]=="X" && field[1][2] == "X" && field[2][2] == "X") {
-            setWinner(playerX);    
+
+        if(field[2][0] == field[2][1] && field[2][1] == field[2][2] && (field[2][0] == "X" || field[2][0] == "O")) {
+            setWinner(field[2][0]);    
             return true;
         }
-        
-        if(field[0][2]=="O" && field[1][2] == "O" && field[2][2] == "O") {
-            setWinner(playerO);    
+
+        if(field[0][0] == field[1][1] && field[1][1] == field[2][2] && (field[0][0] == "X" || field[0][0] == "O")) {
+            setWinner(field[0][0]);    
             return true;
         }
-        
-        if(field[0][0]=="X" && field[0][1] == "X" && field[0][2] == "X") {
-            setWinner(playerX);    
-            return true;
-        }
-        
-        if(field[0][0]=="O" && field[0][1] == "O" && field[0][2] == "O") {
-            setWinner(playerO);    
-            return true;
-        }
-        
-        if(field[1][0]=="X" && field[1][1] == "X" && field[1][2] == "X") {
-            setWinner(playerX);    
-            return true;
-        }
-        
-        if(field[1][0]=="O" && field[1][1] == "O" && field[1][2] == "O") {
-            setWinner(playerO);    
-            return true;
-        }
-        
-        if(field[2][0]=="X" && field[2][1] == "X" && field[2][2] == "X") {
-            setWinner(playerX);    
-            return true;
-        }
-        
-        if(field[2][0]=="O" && field[2][1] == "O" && field[2][2] == "O") {
-            setWinner(playerO);    
-            return true;
-        }
-        
-        if(field[0][0]=="X" && field[1][1] == "X" && field[2][2] == "X") {
-            setWinner(playerX);    
-            return true;
-        }
-        
-        if(field[0][0]=="O" && field[1][1] == "O" && field[2][2] == "O") {
-            setWinner(playerO);    
-            return true;
-        }
-        
-        if(field[2][0]=="X" && field[1][1] == "X" && field[0][2] == "X") {
-            setWinner(playerX);    
-            return true;
-        }
-        
-        if(field[2][0]=="O" && field[1][1] == "O" && field[0][2] == "O") {
-            setWinner(playerO);    
+
+        if(field[2][0] == field[1][1] && field[1][1] == field[0][2] && (field[2][0] == "X" || field[2][0] == "O")) {
+            setWinner(field[2][0]);    
             return true;
         }
         
@@ -191,9 +155,10 @@ contract XO {
         }
         
         if(fields_occupied == 9 ) {
-            Draw(gamePrice);
-            playerX.transfer(gamePrice);
+            Draw(gamePrice * (100 - (playerXPenalty - playerOPenalty)*10)/100, this.balance - gamePrice * (100 - (playerXPenalty - playerOPenalty)*10)/100);
+            playerX.transfer(gamePrice * (100 - (playerXPenalty - playerOPenalty)*10)/100);
             playerO.transfer(this.balance);
+            restartGame();
             return true;
         }
         
@@ -202,96 +167,65 @@ contract XO {
     
     function playerXMove(uint coordX, uint coordY) public returns(bool) {
         
-        if(msg.sender != playerX) {
-            revert();
+        require(msg.sender == playerX);
+        require(gameStatus == "Waiting playerX move");
+        require(coordX <=2 && coordY <= 2);
+        require(field[coordX][coordY] != "X" || field[coordX][coordY] != "O");
+        
+        if(now - lastMoveTS > noPenaltySecondsPerMove) {
+            Penalty(playerX);
+            playerXPenalty++;
         }
         
-        if(gameStatus != "Waiting playerX move") {
-            revert();
-        }
-
-        if(coordX >2 || coordY >2) {
-            revert();
-        }
+        makeAMove(coordX, coordY, "X");
         
-        if(field[coordX][coordY] == "X" || field[coordX][coordY] == "O") {
-            revert();
-        }
-        
-        field[coordX][coordY] = "X";
-
         if(checkWinner()) {
             return true;
         }
         
         gameStatus = "Waiting playerO move";
-        lastMoveTS = now;
         return true;
     }
     
     function playerOMove(uint coordX, uint coordY) public returns(bool) {
-        
-        if(msg.sender != playerO) {
-            revert();
-        }
-        
-        if(gameStatus != "Waiting playerO move") {
-            revert();
-        }
 
-        if(coordX >2 || coordY >2) {
-            revert();
+        require(msg.sender == playerO);
+        require(gameStatus == "Waiting playerO move");
+        require(coordX <=2 && coordY <=2);
+        require(field[coordX][coordY] != "X" && field[coordX][coordY] != "O");
+        
+        if(now - lastMoveTS > noPenaltySecondsPerMove) {
+            Penalty(playerO);
+            playerOPenalty++;
         }
         
-        if(field[coordX][coordY] == "X" || field[coordX][coordY] == "O") {
-            revert();
-        }
+        makeAMove(coordX, coordY, "O");
         
-        field[coordX][coordY] = "O";
-
         if(checkWinner()) {
             return true;
         }
         
         gameStatus = "Waiting playerX move";
-        lastMoveTS = now;
         return true;
     }
 
     function playerXTimeoutWithdraw() public returns(bool) {
         
-        if(gameStatus != "Waiting playerO move" && gameStatus != "Waiting playerO accept") {
-            revert();
-        }
-        
-        if(now < lastMoveTS + secondsPerMove) {
-            revert();
-        }
-        
-        if(msg.sender != playerX) {
-            revert();
-        }
-        
-        setWinner(playerX);
+        require(gameStatus == "Waiting playerO move" || gameStatus == "Waiting playerO accept");
+        require(now > lastMoveTS + secondsPerMove);
+        require(msg.sender == playerX);
+
+        setWinner("X");
         return true;
     }
 
     function playerOTimeoutWithdraw() public returns(bool) {
         
-        if(gameStatus != "Waiting playerX move") {
-            revert();
-        }
+        require(gameStatus == "Waiting playerX move");
+        require(now > lastMoveTS + secondsPerMove);
+        require(msg.sender == playerO);
         
-        if(now < lastMoveTS + secondsPerMove) {
-            revert();
-        }
-        
-        if(msg.sender != playerO) {
-            revert();
-        }
-        
-        setWinner(playerO);
+        setWinner("O");
         return true;
     }
-
 }
