@@ -26,7 +26,6 @@ contract('XO', function(accounts) {
   var games_counter = 0;
 
 
-
   moves_winners.forEach(function(game) {
     games_counter++;
     it('should match pre defined game results for game ' + games_counter, () => {
