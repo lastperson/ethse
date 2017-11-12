@@ -11,26 +11,22 @@ contract XO {
     uint public secondsPerMove;
     byte[3][3] public field;
     uint public lastMoveTS;
-    uint public noPenaltySecondsPerMove;
     uint public playerXPenalty;
     uint public playerOPenalty;
     
     event Draw(uint amountReturnedX, uint amountReturnedO );
-    event PlayerWon(address player, uint amountWon);
     event Move(uint coordX, uint coordY, byte move);
-    event Penalty(address player);
+    event PlayerWon(address player, uint amountWon);
+    event FairPlayerLost(address player, uint amountWon);
+    
+    function XO(uint minPrice, uint timeoutSecs) public {
 
-    function XO(uint minPrice, uint timeoutSecs, uint noPenaltySecs) public {
-
-        require(minPrice > 0 && timeoutSecs > 0 && noPenaltySecs > 0);
-        require(timeoutSecs > noPenaltySecs);
+        require(minPrice > 0 && timeoutSecs > 0);
         
         owner = msg.sender;
         gameStatus = "Waiting playerX bet";
         minGamePrice = minPrice;
         secondsPerMove = timeoutSecs;
-        noPenaltySecondsPerMove = noPenaltySecs;
-        
     }
 
     function makeAMove(uint coordX, uint coordY, byte move) internal {
@@ -87,60 +83,73 @@ contract XO {
         playerOPenalty = 0;
     }
     
-    function setWinner(byte letter) internal {
+    function setWinner(byte letter, bool fairplayer) internal {
         
-        address player;
+        address playerWon;
+        address playerLost;
+        
         
         if(letter == "X") {
-            player = playerX;
+            playerWon = playerX;
+            playerLost = playerO;
         } else {
-            player = playerO;
+            playerWon = playerO;
+            playerLost = playerX;
         }
         
-        PlayerWon(player, this.balance);
-        player.transfer(this.balance);
+        if(fairplayer) {
+            //fairplayer gets 5% even if he/she lost
+            PlayerWon(playerWon, (this.balance * 95)/ 100);
+            playerWon.transfer((this.balance * 95)/ 100);
+            FairPlayerLost(playerLost, this.balance);
+            playerLost.transfer(this.balance);
+        } else {
+            //unfair player (which timeouts his move) will lose all if he/she lost
+            PlayerWon(playerWon, this.balance);
+            playerWon.transfer(this.balance);
+        }
         restartGame();
     }
     
     function checkWinner() internal returns (bool) {
 
         if(field[0][0] == field[1][0] && field[1][0] == field[2][0] && (field[0][0] == "X" || field[0][0] == "O")) {
-            setWinner(field[0][0]);    
+            setWinner(field[0][0], true);    
             return true;
         }
 
         if(field[0][1] == field[1][1] && field[1][1] == field[2][1] && (field[0][1] == "X" || field[0][1] == "O")) {
-            setWinner(field[0][1]);    
+            setWinner(field[0][1], true);    
             return true;
         }
         
         if(field[0][2] == field[1][2] && field[1][2] == field[2][2] && (field[0][2] == "X" || field[0][2] == "O")) {
-            setWinner(field[0][2]);    
+            setWinner(field[0][2], true);    
             return true;
         }
         
         if(field[0][0] == field[0][1] && field[0][1] == field[0][2] && (field[0][0] == "X" || field[0][0] == "O")) {
-            setWinner(field[0][0]);    
+            setWinner(field[0][0], true);    
             return true;
         }
 
         if(field[1][0] == field[1][1] && field[1][1] == field[1][2] && (field[1][0] == "X" || field[1][0] == "O")) {
-            setWinner(field[1][0]);    
+            setWinner(field[1][0], true);    
             return true;
         }
 
         if(field[2][0] == field[2][1] && field[2][1] == field[2][2] && (field[2][0] == "X" || field[2][0] == "O")) {
-            setWinner(field[2][0]);    
+            setWinner(field[2][0], true);    
             return true;
         }
 
         if(field[0][0] == field[1][1] && field[1][1] == field[2][2] && (field[0][0] == "X" || field[0][0] == "O")) {
-            setWinner(field[0][0]);    
+            setWinner(field[0][0], true);    
             return true;
         }
 
         if(field[2][0] == field[1][1] && field[1][1] == field[0][2] && (field[2][0] == "X" || field[2][0] == "O")) {
-            setWinner(field[2][0]);    
+            setWinner(field[2][0], true);    
             return true;
         }
         
@@ -155,8 +164,8 @@ contract XO {
         }
         
         if(fields_occupied == 9 ) {
-            Draw(gamePrice * (100 - (playerXPenalty - playerOPenalty)*10)/100, this.balance - gamePrice * (100 - (playerXPenalty - playerOPenalty)*10)/100);
-            playerX.transfer(gamePrice * (100 - (playerXPenalty - playerOPenalty)*10)/100);
+            Draw(gamePrice, this.balance - gamePrice);
+            playerX.transfer(gamePrice);
             playerO.transfer(this.balance);
             restartGame();
             return true;
@@ -171,11 +180,6 @@ contract XO {
         require(gameStatus == "Waiting playerX move");
         require(coordX <=2 && coordY <= 2);
         require(field[coordX][coordY] != "X" || field[coordX][coordY] != "O");
-        
-        if(now - lastMoveTS > noPenaltySecondsPerMove) {
-            Penalty(playerX);
-            playerXPenalty++;
-        }
         
         makeAMove(coordX, coordY, "X");
         
@@ -194,11 +198,6 @@ contract XO {
         require(coordX <=2 && coordY <=2);
         require(field[coordX][coordY] != "X" && field[coordX][coordY] != "O");
         
-        if(now - lastMoveTS > noPenaltySecondsPerMove) {
-            Penalty(playerO);
-            playerOPenalty++;
-        }
-        
         makeAMove(coordX, coordY, "O");
         
         if(checkWinner()) {
@@ -215,7 +214,7 @@ contract XO {
         require(now > lastMoveTS + secondsPerMove);
         require(msg.sender == playerX);
 
-        setWinner("X");
+        setWinner("X", false);
         return true;
     }
 
@@ -225,7 +224,7 @@ contract XO {
         require(now > lastMoveTS + secondsPerMove);
         require(msg.sender == playerO);
         
-        setWinner("O");
+        setWinner("O", false);
         return true;
     }
 }

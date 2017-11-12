@@ -103,14 +103,15 @@ contract('XO', function(accounts) {
           }
       })
       .then(result => {
-        assert.equal(result.logs[result.logs.length-1].event, expected_event);
 
 	if(game['winner'] == 'D') {
+          assert.equal(result.logs[result.logs.length-1].event, expected_event);
           assert.equal(result.logs[result.logs.length-1].args.amountReturnedX.valueOf(), korova);
           assert.equal(result.logs[result.logs.length-1].args.amountReturnedO.valueOf(), korova);
 	} else {
-          assert.equal(result.logs[result.logs.length-1].args.player, expected_winner);
-          assert.equal(result.logs[result.logs.length-1].args.amountWon.valueOf(), korova*2);
+          assert.equal(result.logs[result.logs.length-2].event, expected_event);
+          assert.equal(result.logs[result.logs.length-2].args.player, expected_winner);
+          assert.equal(result.logs[result.logs.length-2].args.amountWon.valueOf(), korova*1.9);
         }
 
       });
@@ -182,34 +183,29 @@ contract('XO', function(accounts) {
   });
 
 
-  it('should apply penalty 20% for playerX for 2 delays', () => {
+  it('should return 5% of total bet (10% of gamePrice) for playerO if he is a fair player (not timing out his moves)', () => {
     const playerX = accounts[3];
     const playerO = accounts[4];
     const korova = 10000;
 
     return Promise.resolve()
     .then(() => xo.playerXBet(0,0, {from: playerX, value: korova}))
-    .then(() => xo.playerOAccept(0,1, {from: playerO, value: korova}))
+    .then(() => xo.playerOAccept(1,0, {from: playerO, value: korova}))
     .then( function(result) {
           increaseTime(6);
           return result;
     })
-    .then(() => xo.playerXMove(1,0, {from: playerX}))
+    .then(() => xo.playerXMove(0,1, {from: playerX}))
     .then(() => xo.playerOMove(1,1, {from: playerO}))
     .then( function(result) {
           increaseTime(6);
           return result;
     })
     .then(() => xo.playerXMove(0,2, {from: playerX}))
-    .then(() => xo.playerOMove(2,0, {from: playerO}))
-    .then(() => xo.playerXMove(1,2, {from: playerX}))
-    .then(() => xo.playerOMove(2,2, {from: playerO}))
-    .then(() => xo.playerXMove(2,1, {from: playerX}))
     .then(result => {
 //      assert.equal(result.logs.length, 1);
-      assert.equal(result.logs[result.logs.length-1].event, 'Draw');
-      assert.equal(result.logs[result.logs.length-1].args.amountReturnedX.valueOf(), (korova * 0.8) );
-      assert.equal(result.logs[result.logs.length-1].args.amountReturnedO.valueOf(), (korova * 1.2) );
+      assert.equal(result.logs[result.logs.length-1].event, 'FairPlayerLost');
+      assert.equal(result.logs[result.logs.length-1].args.amountWon.valueOf(), (korova * 0.1) );
     });
   });
 
