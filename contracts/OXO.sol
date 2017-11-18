@@ -12,6 +12,7 @@ contract OXO {
 	mapping (address => uint) public wallets;
 
 	uint public step = 0;
+	uint public deposit = 500 wei;
 
 	enum StateMachine {GameEnded, Game}
 	StateMachine public state;
@@ -59,7 +60,7 @@ contract OXO {
      */
 	function deposit() payable public returns (bool success) {
 		require(state == StateMachine.GameEnded);
-		require(msg.value == 500 wei);
+		require(msg.value == deposit);
 		require(!payed[msg.sender]);
 		//If nobody payed yet, then you're the first player
 		if (octopus == 0) {
@@ -72,6 +73,7 @@ contract OXO {
 			whale = msg.sender;
 			payed[msg.sender] = true;
 			Deposit(msg.value);
+			//start game
 			state = StateMachine.Game;
 			return true;
 		}
@@ -141,7 +143,7 @@ contract OXO {
 	 * Return true only if it's win combo
 	 * Return false in other cases
 	 */
-	function isWinner(byte s) public returns (bool success) {
+	function isWinner(byte s) constant public returns (bool success) {
 		// I wish it could be just one 'if' but remix can't handle it
 		if (field[0][0] == s && field[0][1] == s && field[0][2] == s) {
 			return true;
@@ -180,14 +182,14 @@ contract OXO {
 		if (isWinner('X')) {
 			Win("Our winner is octopus", octopus);
 			sendMoneyToWinner(octopus);
-			cleanField();
+			restart();
 			state = StateMachine.GameEnded;
 			return true;
 		}
 		if (isWinner('O')) {
 			Win("Our winner is whale", whale);
 			sendMoneyToWinner(whale);
-			cleanField();
+			restart();
 			state = StateMachine.GameEnded;
 			return true;
 		}
@@ -199,33 +201,37 @@ contract OXO {
 	 * He will get them by using withdraw
 	 */
 	function sendMoneyToWinner(address _winner) internal {
-		wallets[_winner] = this.balance;
+		wallets[_winner] = deposit * 2;
 	}
 
 	function draw() internal {
 		Draw("We have a draw. You both played well");
-		wallets[octopus] = this.balance / 2;
-		wallets[whale] = this.balance / 2;
-		cleanField();
+		wallets[octopus] = deposit;
+		wallets[whale] = deposit;
+		restart();
 		state = StateMachine.GameEnded;
 	}
 
-	function cleanField() internal {
+	function restart() internal {
 		for (uint row = 0; row < 3; row++) {
 			for (uint col = 0; col < 3; col++) {
 				field[row][col] = 0;
 			}
 		}
 		step = 0;
+		payed[octopus] = false;
+		payed[whale] = false;
+		octopus = 0;
+		whale = 0;
+		lastMove = "O";
 	}
 
 	/**
 	 * Allow to get payments
-	 * Can be called only by players
 	 * Wallet of players should be cleaned after withdraw
 	 */
-	function withdraw() onlyPlayer public returns (bool success) {
-		if ((msg.sender == octopus || msg.sender == whale) && wallets[msg.sender] > 0) {
+	function withdraw() public returns (bool success) {
+		if (wallets[msg.sender] > 0) {
 			msg.sender.transfer(wallets[msg.sender]);
 			Withdraw(msg.sender, wallets[msg.sender]);
 			wallets[msg.sender] = 0;

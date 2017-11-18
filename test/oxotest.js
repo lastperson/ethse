@@ -2,6 +2,7 @@ const Reverter = require('./helpers/reverter');
 const Asserts = require('./helpers/asserts');
 const OXO = artifacts.require('./OXO.sol');
 const testArr = require('./oxotestdata.js');
+const each = require('promise-each')
 
 contract('OXO', function (accounts) {
 	const reverter = new Reverter(web3);
@@ -202,7 +203,7 @@ contract('OXO', function (accounts) {
 		});
 	});
 	
-	it('shoud emit event Draw when game has ended with a draw', () => {
+	it('should emit event Draw when game has ended with a draw', () => {
 		const octopus = accounts[1];
 		const whale = accounts[2];
 		const deposit = 500;
@@ -268,11 +269,10 @@ contract('OXO', function (accounts) {
 		.then(asserts.equal(balance));
 	});
 	
-	it('should send half money to octopus wallet and half to whale if it is draw', () => {
+	it('should send deposit to octopus wallet and deposit to whale if it is draw', () => {
 		const octopus = accounts[1];
 		const whale = accounts[2];
 		const deposit = 500;
-		const balance = 500 * 2;
 		return Promise.resolve()
 		.then(() => oxo.deposit({from: octopus, value: deposit}))
 		.then(() => oxo.deposit({from: whale, value: deposit}))
@@ -293,20 +293,13 @@ contract('OXO', function (accounts) {
 		.then(asserts.equal(deposit));
 	});
 	
-	it('should clean the field after a game', () => {
+	it('should clean the field before a game', () => {
 		const octopus = accounts[1];
 		const whale = accounts[2];
 		const deposit = 500;
-		const balance = 500 * 2;
 		return Promise.resolve()
 		.then(() => oxo.deposit({from: octopus, value: deposit}))
 		.then(() => oxo.deposit({from: whale, value: deposit}))
-		
-		.then(() => oxo.move(0, 0, {from: octopus}))
-		.then(() => oxo.move(0, 1, {from: whale}))
-		.then(() => oxo.move(1, 1, {from: octopus}))
-		.then(() => oxo.move(0, 2, {from: whale}))
-		.then(() => oxo.move(2, 2, {from: octopus}))
 		
 		.then(() => oxo.getField(0, 0))
 		.then(asserts.equal('0x00'))
@@ -444,7 +437,6 @@ contract('OXO', function (accounts) {
 		const octopus = accounts[1];
 		const whale = accounts[2];
 		const deposit = 500;
-		const balance = 500 * 2;
 		return Promise.resolve()
 		.then(() => oxo.deposit({from: octopus, value: deposit}))
 		.then(() => oxo.deposit({from: whale, value: deposit}))
@@ -461,11 +453,10 @@ contract('OXO', function (accounts) {
 		.then(asserts.equal(0));
 	});
 	
-	it('balance of contract should be 0 if winner withdraw', () => {
+	it('should allow to play another game after the first one', () => {
 		const octopus = accounts[1];
 		const whale = accounts[2];
 		const deposit = 500;
-		const balance = 500 * 2;
 		return Promise.resolve()
 		.then(() => oxo.deposit({from: octopus, value: deposit}))
 		.then(() => oxo.deposit({from: whale, value: deposit}))
@@ -476,43 +467,39 @@ contract('OXO', function (accounts) {
 		.then(() => oxo.move(0, 2, {from: whale}))
 		.then(() => oxo.move(2, 2, {from: octopus}))
 		
-		
-		.then(() => oxo.withdraw({from: octopus}))
-		.then(() => oxo.myBalance())
-		.then(asserts.equal(0));
-	});
-	
-	it('balance of contract should be 0 if both players withdraw after draw', () => {
-		const octopus = accounts[1];
-		const whale = accounts[2];
-		const deposit = 500;
-		return Promise.resolve()
 		.then(() => oxo.deposit({from: octopus, value: deposit}))
 		.then(() => oxo.deposit({from: whale, value: deposit}))
-		
-		.then(() => oxo.move(1, 1, {from: octopus}))
-		.then(() => oxo.move(0, 2, {from: whale}))
-		.then(() => oxo.move(2, 0, {from: octopus}))
-		.then(() => oxo.move(0, 0, {from: whale}))
-		.then(() => oxo.move(0, 1, {from: octopus}))
-		.then(() => oxo.move(2, 1, {from: whale}))
-		.then(() => oxo.move(1, 0, {from: octopus}))
-		.then(() => oxo.move(1, 2, {from: whale}))
-		.then(() => oxo.move(2, 2, {from: octopus}))
-		
-		.then(() => oxo.withdraw({from: octopus}))
-		.then(() => oxo.withdraw({from: whale}))
-		.then(() => oxo.myBalance())
-		.then(asserts.equal(0));
+		.then(() => oxo.move.call(0, 0, {from: octopus}))
+		.then(assert.isTrue);
 	});
 	
-	it.skip('isWinner check wins correctly', () => {
+	describe('wins are checked correctly', () => {
 		const octopus = accounts[1];
 		const whale = accounts[2];
 		const deposit = 500;
-		let field = [];
-		//create an empty array
-		//make it a two-dimensional array
-		//convert from format [1,1,X] to field[1][1] == 'X'
+		let wins = 0;
+		
+		testArr.forEach((match, idx) => {
+			it('match ' + idx, () => {
+				let players = {
+					[match[0][2]]: octopus,
+					[match[1][2]]: whale
+				};
+				let p = Promise.resolve()
+					.then(() => oxo.deposit({from: octopus, value: deposit}))
+					.then(() => oxo.deposit({from: whale, value: deposit}));
+				
+				match.forEach(move => {
+					p = p.then(() => oxo.move(move[0], move[1], {from: players[move[2]]}));
+				});
+				return p.then(result => {
+					wins += result.logs.filter(r => r.event === 'Win').length;
+				});
+			});
+		});
+		
+		it('has correct number of wins', () => {
+			return Promise.resolve().then(() => assert.equal(wins, 10));
+		});
 	});
 });
