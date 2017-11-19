@@ -14,6 +14,8 @@ contract OXO {
 	uint public step = 0;
 	uint public deposit = 500 wei;
 
+	uint lastMoveTime;
+
 	enum StateMachine {GameEnded, Game}
 	StateMachine public state;
 
@@ -75,6 +77,7 @@ contract OXO {
 			Deposit(msg.value);
 			//start game
 			state = StateMachine.Game;
+			lastMoveTime = now;
 			return true;
 		}
 		return false;
@@ -100,15 +103,18 @@ contract OXO {
 				require(lastMove == "O");
 				field[x][y] = "X";
 				lastMove = "X";
+				lastMoveTime = now;
 				step++;
 			}
 			if (msg.sender == whale) {
 				require(lastMove == "X");
 				field[x][y] = "O";
 				lastMove = "O";
+				lastMoveTime = now;
 				step++;
 			}
-		} else {
+		}
+		else {
 			return false;
 		}
 		if (step >= 5) {
@@ -180,20 +186,30 @@ contract OXO {
 	 */
 	function checkForWinner() public returns (bool success) {
 		if (isWinner('X')) {
+			weHaveWinner(octopus);
+			return true;
+		}
+		if (isWinner('O')) {
+			weHaveWinner(whale);
+			return true;
+		}
+		return false;
+	}
+
+	function weHaveWinner(address _winner) {
+		if (_winner == octopus) {
 			Win("Our winner is octopus", octopus);
 			sendMoneyToWinner(octopus);
 			restart();
 			state = StateMachine.GameEnded;
-			return true;
 		}
-		if (isWinner('O')) {
+
+		if (_winner == whale) {
 			Win("Our winner is whale", whale);
 			sendMoneyToWinner(whale);
 			restart();
 			state = StateMachine.GameEnded;
-			return true;
 		}
-		return false;
 	}
 
 	/**
@@ -201,7 +217,7 @@ contract OXO {
 	 * He will get them by using withdraw
 	 */
 	function sendMoneyToWinner(address _winner) internal {
-		wallets[_winner] = deposit * 2;
+		wallets[_winner] += deposit * 2;
 	}
 
 	function draw() internal {
@@ -236,6 +252,25 @@ contract OXO {
 			Withdraw(msg.sender, wallets[msg.sender]);
 			wallets[msg.sender] = 0;
 			return true;
+		}
+	}
+
+	function returnDeposit() public returns (bool success) {
+		if (now >= lastMoveTime + 30 seconds) {
+			if (lastMove == '0') {
+				require(msg.sender == whale);
+				weHaveWinner(whale);
+			}
+
+			if (lastMove == 'X') {
+				require(msg.sender == octopus);
+				weHaveWinner(octopus);
+			}
+			return true;
+		}
+		else {
+			Message("Time isn't running out");
+			return false;
 		}
 	}
 }
