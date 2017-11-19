@@ -67,7 +67,7 @@ contract OXO {
             2 - game over and O win
             3 - game over and draw
     */
-    function isGameOver(uint gameId) internal constant returns (uint8){
+    function isGameOver(uint gameId) internal constant returns (uint8) {
         uint8[2][3][8] memory templates;
         uint8[2][3] memory points;
         uint8[3][3] memory board;
@@ -90,7 +90,7 @@ contract OXO {
             xo = board[points[0][0]][points[0][1]];
             if (xo > 0
                 && xo == board[points[1][0]][points[1][1]]
-                && board[points[1][0]][points[1][1]] == board[points[2][0]][points[2][1]]) {
+                && xo == board[points[2][0]][points[2][1]]) {
                     return xo;
                 }
         }
@@ -150,7 +150,7 @@ contract OXO {
 
     function cancelGame(uint gameId) public {
         require(gameId < countGames);
-        require(block.timestamp - games[gameId].lastTime > 60*60);
+        require(block.timestamp - games[gameId].lastTime > 24 hours);
         require(msg.sender == games[gameId].playerX || msg.sender == games[gameId].playerO);
         if (games[gameId].state == GameState.New) {
             msg.sender.transfer(games[gameId].bet);

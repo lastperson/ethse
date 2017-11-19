@@ -29,14 +29,14 @@ contract('OXO', function(accounts) {
       return Promise.resolve()
       .then(() => oxo.createGame(xo, {from: player1, value: bet}))
       .then(() => oxo.confirmGame(gameId, {from: player2, value: bet}))
-      .then((result) => { 
+      .then((result) => {
         if (game[0] != undefined) {
           return oxo.makeMove(gameId, game[0][0], game[0][1], {from: player1});
         } else {
           return result;
         }
       })
-      .then((result) => { 
+      .then((result) => {
         if (game[1] != undefined) {
           return oxo.makeMove(gameId, game[1][0], game[1][1], {from: player2});
         } else {
