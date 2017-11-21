@@ -504,54 +504,75 @@ contract('OXO', function (accounts) {
 		});
 	});
 	
-	it('should not allow to returnDeposit before the time expires', () => {
-		const octopus = accounts[1];
-		const whale = accounts[2];
-		const deposit = 500;
-		return Promise.resolve()
-		.then(() => oxo.deposit({from: octopus, value: deposit}))
-		.then(() => oxo.deposit({from: whale, value: deposit}))
-		.then(() => oxo.getReward.call({from: whale}))
-		.then(assert.isFalse);
-	});
-	
-	it('should allow to take money if one of the players has disappeared', () => {
-		const octopus = accounts[1];
-		const whale = accounts[2];
-		const deposit = 500;
-		return Promise.resolve()
-		.then(() => oxo.deposit({from: octopus, value: deposit}))
-		.then(() => oxo.deposit({from: whale, value: deposit}))
-		.then(() => increaseTime(30))
-		.then(() => oxo.getReward({from: whale}))
-		.then(() => oxo.wallets(whale))
-		.then(asserts.equal(1000))
-	});
-	
-	it('should allow to play again after returnDeposit', () => {
-		const octopus = accounts[1];
-		const whale = accounts[2];
-		const deposit = 500;
-		return Promise.resolve()
-		.then(() => oxo.deposit({from: octopus, value: deposit}))
-		.then(() => oxo.deposit({from: whale, value: deposit}))
-		.then(() => increaseTime(30))
-		.then(() => oxo.getReward({from: whale}))
+	describe('tests for getReward()', () => {
 		
-		.then(() => oxo.deposit({from: octopus, value: deposit}))
-		.then(() => oxo.deposit({from: whale, value: deposit}))
+		it('should not allow to take money before the time expires', () => {
+			const octopus = accounts[1];
+			const whale = accounts[2];
+			const deposit = 500;
+			return Promise.resolve()
+			.then(() => oxo.deposit({from: octopus, value: deposit}))
+			.then(() => oxo.deposit({from: whale, value: deposit}))
+			.then(() => oxo.getReward.call({from: whale}))
+			.then(assert.isFalse);
+		});
 		
-		.then(() => oxo.move(0, 0, {from: octopus}))
-		.then(() => oxo.move(0, 1, {from: whale}))
-		.then(() => oxo.move(1, 1, {from: octopus}))
-		.then(() => oxo.move(0, 2, {from: whale}))
-		.then(() => oxo.move(2, 2, {from: octopus}))
+		it('should allow to take money if one of the players has disappeared after deposit', () => {
+			const octopus = accounts[1];
+			const whale = accounts[2];
+			const deposit = 500;
+			return Promise.resolve()
+			.then(() => oxo.deposit({from: octopus, value: deposit}))
+			.then(() => oxo.deposit({from: whale, value: deposit}))
+			.then(() => increaseTime(30))
+			.then(() => oxo.getReward({from: whale}))
+			.then(() => oxo.wallets(whale))
+			.then(asserts.equal(1000))
+		});
 		
-		.then(result => {
-			assert.equal(result.logs.length, 1);
-			assert.equal(result.logs[0].event, 'Win');
-			assert.equal(result.logs[0].args.message, "Our winner is octopus");
-			assert.equal(result.logs[0].args.winner.valueOf(), octopus);
+		it('should allow to take money if one of the players has disappeared after several moves', () => {
+			const octopus = accounts[1];
+			const whale = accounts[2];
+			const deposit = 500;
+			return Promise.resolve()
+			.then(() => oxo.deposit({from: octopus, value: deposit}))
+			.then(() => oxo.deposit({from: whale, value: deposit}))
+			.then(() => oxo.move(0, 0, {from: octopus}))
+			.then(() => oxo.move(0, 1, {from: whale}))
+			.then(() => oxo.move(1, 1, {from: octopus}))
+			
+			.then(() => increaseTime(30))
+			.then(() => oxo.getReward({from: octopus}))
+			.then(() => oxo.wallets(octopus))
+			.then(asserts.equal(1000))
+		});
+		
+		it('should allow to play again after getReward', () => {
+			const octopus = accounts[1];
+			const whale = accounts[2];
+			const deposit = 500;
+			return Promise.resolve()
+			.then(() => oxo.deposit({from: octopus, value: deposit}))
+			.then(() => oxo.deposit({from: whale, value: deposit}))
+			
+			.then(() => increaseTime(30))
+			.then(() => oxo.getReward({from: whale}))
+			
+			.then(() => oxo.deposit({from: octopus, value: deposit}))
+			.then(() => oxo.deposit({from: whale, value: deposit}))
+			
+			.then(() => oxo.move(0, 0, {from: octopus}))
+			.then(() => oxo.move(0, 1, {from: whale}))
+			.then(() => oxo.move(1, 1, {from: octopus}))
+			.then(() => oxo.move(0, 2, {from: whale}))
+			.then(() => oxo.move(2, 2, {from: octopus}))
+			
+			.then(result => {
+				assert.equal(result.logs.length, 1);
+				assert.equal(result.logs[0].event, 'Win');
+				assert.equal(result.logs[0].args.message, "Our winner is octopus");
+				assert.equal(result.logs[0].args.winner.valueOf(), octopus);
+			});
 		});
 	});
 	

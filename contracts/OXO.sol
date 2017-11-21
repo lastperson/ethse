@@ -47,10 +47,6 @@ contract OXO {
 		return field[x][y];
 	}
 
-	function getTime() constant returns (uint256) {
-		return now;
-	}
-
 	//events
 	event Message(string message);
 	event Deposit(uint value);
@@ -264,22 +260,13 @@ contract OXO {
 			if (lastMove == 'O') {
 				require(msg.sender == whale);
 				weHaveWinner(whale);
-				return true;
-			} else {
-				Message("It's your turn");
-				return false;
 			}
-
 
 			if (lastMove == 'X') {
 				require(msg.sender == octopus);
 				weHaveWinner(octopus);
-				return true;
-			} else {
-				Message("It's your turn");
-				return false;
 			}
-
+			return true;
 		}
 		else {
 			Message("Time isn't running out");
