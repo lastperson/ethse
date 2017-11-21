@@ -24,8 +24,9 @@
   },
   "homepage": "https://github.com/lastperson/ethse#readme",
   "dependencies": {
-    "bluebird": "^3.5.0",
-    "ethereumjs-testrpc": "5.0.1",
-    "truffle": "3.4.11"
+    "bluebird": "^3.5.1",
+    "ethereumjs-testrpc": "^5.0.1",
+    "promise-each": "^2.2.0",
+    "truffle": "^3.4.11"
   }
 }
