@@ -47,13 +47,76 @@ contract('Debts', function(accounts) {
     });
   });
 
-  it('should allow to borrow');
+  it('should allow to borrow', () => {
+    const borrower = accounts[4];
+    const borrowAmount = 100;
 
-  it('should emit Repayed event on repay');
+    return Promise.resolve()
+      .then(() => {
+        debts.borrow(borrowAmount, {from: borrower});
+        return debts.debts(borrower);
+      })
+      .then((amount) => {
+        // console.log(amount.toNumber());
+        assert.equal(borrowAmount, amount.toNumber(), "borrowed is incorrect value");
+      }) 
 
-  it('should not allow owner to borrow');
+      /*  TODO: how to implement via asserts.doesNotThrows(debts.borrow(borrowAmount, {from: borrower}))); ? 
+          I wasn't able to accomplish it - got error all the time.
+      */
+  });
 
-  it('should not allow not owner to repay');
+  it('should emit Repayed event on repay', () => {
+    const borrower = accounts[4];
+    const borrowAmount = 100;
 
-  it('should direct you for inventing more tests');
+    return Promise.resolve()
+      .then(() => debts.borrow(borrowAmount, {from:borrower}))
+      .then(() => debts.repay(borrower, borrowAmount, {from: OWNER}))
+      .then(tx => {
+        assert.equal(tx.logs.length, 1);
+        assert.equal(tx.logs[0].event, 'Repayed');
+        assert.equal(tx.logs[0].args.by, borrower);
+        assert.equal(tx.logs[0].args.value.valueOf(), borrowAmount);
+      });
+  });
+
+  //  ver 1
+  it('should not allow owner to borrow', () => {    
+    const borrower = accounts[4]  //  should fail test
+
+    return Promise.resolve()
+      .then(() => debts.borrow.call(1, {from: OWNER}))
+      .then((result) => assert.isFalse(result, 'owner is not permitted to borrow'));
+  });   
+
+  // // ver 2 - using require in "onlyNotOwner"
+  // it('should not allow owner to borrow', () => {
+  //   const borrower = accounts[4]  //  should fail test
+  
+  //   return Promise.resolve()
+  //     .then(() => asserts.throws(debts.borrow(1, {from: OWNER})));
+  // });
+
+  it('should not allow not owner to repay', () => {
+    const borrower = accounts[4];
+    const borrowAmount = 100;
+
+    return Promise.resolve()
+      .then(() => debts.borrow(borrowAmount, {from: borrower}))
+      .then(() => debts.repay.call(borrower, borrowAmount, {from: borrower}))
+      .then((result) => assert.isFalse(result, "owner only is permitted to repay"))
+      .then(() => debts.repay.call(borrower, borrowAmount, {from: OWNER}))
+      .then((result) => assert.isTrue(result, "owner should be permitted to repay"));
+  });
+
+  it('should not allow to repay more, than borrowed', () => {
+    const borrower = accounts[4];
+    const borrowAmount = 100;
+    const repayAmount = 111;
+
+    return Promise.resolve()
+      .then(() => debts.borrow(borrowAmount, {from: borrower}))
+      .then(() => asserts.throws(debts.repay(borrower, repayAmount, {from: OWNER})))
+  });
 });
