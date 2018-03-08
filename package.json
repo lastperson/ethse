@@ -6,7 +6,8 @@
     "test": "truffle test",
     "compile": "truffle compile",
     "truffle": "truffle",
-    "testrpc": "testrpc"
+    "testrpc": "testrpc",
+    "version": "truffle version"
   },
   "repository": {
     "type": "git",
@@ -26,6 +27,6 @@
   "dependencies": {
     "bluebird": "^3.5.0",
     "ethereumjs-testrpc": "5.0.1",
-    "truffle": "3.4.11"
+    "truffle": "^4.1.3"
   }
 }

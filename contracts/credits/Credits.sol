@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity 0.4.19;
 
 import "./Ownable.sol";
 import "./SafeMath.sol";
@@ -6,7 +6,7 @@ import "./SafeMath.sol";
 contract Credits is Ownable {
     
     using SafeMath for uint256;
-    
+
     mapping(address => uint) public credits;
     mapping(address => uint) public creditRequests;
     
@@ -16,7 +16,7 @@ contract Credits is Ownable {
     
    function creditRequest(uint _amount) onlyNotOwner public returns(bool result) {
         require(_amount > 0);
-        creditRequests[msg.sender] += _amount;
+        creditRequests[msg.sender] = SafeMath.add(_amount, creditRequests[msg.sender]);
         CreditRequested(msg.sender, _amount);
         return true;
     }
@@ -25,14 +25,13 @@ contract Credits is Ownable {
         return creditRequests[requestor];
     }
     
-    function approveCretidTransaction(address addr, uint approveAmount) onlyOwner public returns(uint){
+    function approveCretidTransaction(address addr, uint approveAmount) onlyOwner public returns(bool){
         uint askedAmount = creditRequests[addr];
-        require(ask)
-        require(amount > 0);
-        creditRequests[addr]-=amount;
-        credits[addr]+=amount;
-        CreditTransactionApproved(addr, amount);
-        return amount;
+        require(approveAmount > 0 && approveAmount <= askedAmount);
+        creditRequests[addr] = SafeMath.sub(creditRequests[addr], approveAmount);
+        credits[addr] = SafeMath.add(credits[addr], approveAmount);
+        CreditTransactionApproved(addr, approveAmount);
+        return true;
     }
     //===============================================================================
     
@@ -40,7 +39,7 @@ contract Credits is Ownable {
     function returnFunds(address addr, uint amount) onlyOwner public returns(bool){
         uint currentCreditAmount = credits[addr];
         require(currentCreditAmount >= amount);
-        credits[addr]-=amount;
+        credits[addr] = SafeMath.sub(credits[addr], amount);
         FundsReturned(addr, amount);
         return true;
     }

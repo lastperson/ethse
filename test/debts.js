@@ -96,20 +96,17 @@ contract('Debts', function (accounts) {
 
         return Promise.resolve()
             .then(() => debts.borrow(value, {from: borrower}))
-            .then(() => {
-                debts.repay(borrower, value, {from: alien})
-                    .then((res) => {
-                        getAndCompare(borrower, value)
-                        assert.equal(res.logs.length, 0)
-                    })
+            .then(() => debts.repay(borrower, value, {from: alien}))
+            .then((res) => {
+                getAndCompare(debts.debts, borrower, value)
+                assert.equal(res.logs.length, 0)
             })
     });
 
-    async function getAndCompare(addr, value){
-        var  debt = await debts.debts(addr)
-        assert.equal(debt.toNumber(), value)
+    async function getAndCompare(map, addr, value) {
+        var amount = await map(addr)
+        assert.equal(amount, value)
     }
 
     it('should direct you for inventing more tests');
-})
-;
+});
