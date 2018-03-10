@@ -112,7 +112,7 @@ contract('Debts', function(accounts) {
     const toBePayed = value - partRepayment;
     return Promise.resolve()
     .then(() => debts.borrow(value, {from: borrower}))
-    .then(() => debts.repay(borrower, partRepay, {from: OWNER}))
+    .then(() => debts.repay(borrower, partRepayment, {from: OWNER}))
     .then(() => debts.debts(borrower))
     .then(asserts.equal(toBePayed));
   });
