@@ -25,17 +25,17 @@ contract('OffChaitDebts', function(accounts) {
   });
 
   it('should return TRUE on borrow', async() => {
-    assert.equal(await debts.borrow.call(AMOUNT, {from: BORROWER}), true);
+    assert.isTrue(await debts.borrow.call(AMOUNT, {from: BORROWER}));
   });
 
   it('should not allow owner to borrow', async () => {
-    assert.equal(await debts.borrow.call(AMOUNT, {from: OWNER}), false);
+    assert.isFalse(await debts.borrow.call(AMOUNT, {from: OWNER}));
   });
 
    it('should fail on overflow when borrowing', async() => {
     const value = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
-    await debts.borrow(value, {from: accounts[3]});
-    asserts.throws(debts.borrow(1, {from: accounts[3]}))
+    await debts.borrow(value, {from: BORROWER});
+    await asserts.throws(debts.borrow(1, {from: BORROWER}));
   }); 
 
   it('should emit Borrow event on borrow', async() => {
@@ -47,11 +47,10 @@ contract('OffChaitDebts', function(accounts) {
   });
 
    //test repay function
-   it('should allow to repay', async() => {
-    let balance = (await debts.debts(BORROWER)).toNumber();
+   it('should allow to repay', async () => {
     await debts.borrow(AMOUNT, {from: BORROWER});
     await debts.returnDebt(BORROWER, AMOUNT, {from: OWNER});
-    assert.equal((await debts.debts(BORROWER)).toNumber(), balance)
+    assert.equal(await debts.debts(BORROWER), 0)
   }); 
 
   it('should emit ReturnDebt event on repay', async() => {
@@ -65,7 +64,7 @@ contract('OffChaitDebts', function(accounts) {
 
   it('should not allow not owner to repay', async() => {
     await debts.borrow(AMOUNT, {from: BORROWER});
-    assert.equal(await debts.returnDebt.call(BORROWER, AMOUNT, {from: BORROWER}), false)
+    assert.isFalse(await debts.returnDebt.call(BORROWER, AMOUNT, {from: BORROWER}))
   });
 
   it('should not repay more than debt amount', async() => {
@@ -75,7 +74,7 @@ contract('OffChaitDebts', function(accounts) {
 
   it('should return TRUE on repay', async() => {
     await debts.borrow(AMOUNT, {from: BORROWER});
-    assert.equal(await debts.returnDebt.call(BORROWER, AMOUNT, {from: OWNER}), true);
+    assert.isTrue(await debts.returnDebt.call(BORROWER, AMOUNT, {from: OWNER}));
   });
 
   //constructor test
