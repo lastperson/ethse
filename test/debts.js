@@ -126,7 +126,7 @@ contract('Debts', function(accounts) {
     .then(() => debts.borrow(firstBorrow, {from: borrower}))
     .then(() => debts.borrow(secondBorrow, {from: borrower}))
     .then(() => debts.debts(borrower))
-    .then(asserts.equal(sum));
+    .then(asserts.equal(borrowSum));
   }); 
 
   it('added: should not allow to repay more than were borrowed', () => {
