@@ -47,13 +47,73 @@ contract('Debts', function(accounts) {
     });
   });
 
-  it('should allow to borrow');
+  it('should allow to borrow', () => {
+    const borrower = accounts[3];
+    const value = 1000;
+    return Promise.resolve()
+    .then(() => debts.borrow(value, {from: borrower}))
+    .then(() => debts.borrow(value, {from: borrower}))
+    .then(() => debts.debts(borrower))
+    .then(asserts.equal(value*2));
+  });
 
-  it('should emit Repayed event on repay');
+  it('should emit Repayed event on repay', () => {
+    const borrower = accounts[3];
+    const value = 1000;
+    return Promise.resolve()
+    .then(() => debts.borrow(value, {from: borrower}))
+    .then(() => debts.repay(borrower, value, {from: OWNER}))
+    .then(result => {
+      assert.equal(result.logs.length, 1);
+      assert.equal(result.logs[0].event, 'Repayed');
+      assert.equal(result.logs[0].args.by, borrower);
+      assert.equal(result.logs[0].args.value.valueOf(), value);
+    });
+  });
 
-  it('should not allow owner to borrow');
+  it('should not allow owner to borrow', () => {
+    const value = 1000;
+    return Promise.resolve()
+    .then(() => debts.borrow.call(value, {from: OWNER}))
+    .then(asserts.equal(false));
+  });
 
-  it('should not allow not owner to repay');
+  it('should not allow not owner to repay', () => {
+    const borrower = accounts[3];
+    const value = 1000;
+    return Promise.resolve()
+    .then(() => debts.borrow(value, {from: borrower}))
+    .then(() => debts.repay.call(borrower, value, {from: borrower}))
+    .then(asserts.equal(false));   
+  });
 
-  it('should direct you for inventing more tests');
+//should direct you for inventing more tests
+
+  it('should revert when borrow more than uint256 max', () => {
+    const borrower = accounts[3];
+    const value = 2**256-1;
+    return Promise.resolve()
+    .then(() => debts.borrow(value + 1, {from: borrower}))
+    .then(asserts.fail)
+    .catch(function(error){      
+      assert.include(error.message,"revert")
+    })
+    .then(() => debts.debts(borrower))
+    .then(asserts.equal(0));
+  });
+
+  it('should revert when repay more than was borrowed', () => {
+    const borrower = accounts[3];
+    const value = 1000;
+    return Promise.resolve()
+    .then(() => debts.borrow(value, {from: borrower}))
+    .then(() => debts.repay.call(borrower, value + 1, {from: OWNER}))
+    .then(asserts.fail)
+    .catch(function(error){      
+      assert.include(error.message,"revert")
+    })
+    .then(() => debts.debts(borrower))
+    .then(asserts.equal(value));
+  });
+
 });
