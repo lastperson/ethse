@@ -103,7 +103,7 @@ contract('Debts', function(accounts) {
     .then(result => assert.equal(result.valueOf(), 500))
   });
 
-  it.only('should allow to repay zero', () => {
+  it('should allow to repay zero', () => {
     const borrower = accounts[4];
     const value = 500;
     return Promise.resolve()
