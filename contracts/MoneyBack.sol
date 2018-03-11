@@ -3,15 +3,10 @@ pragma solidity ^0.4.15;
 contract MoneyBack{
     address public owner;
     mapping (address => uint) public debt;
-   
-    //event ErrorMessage(string);
-    //event Warning(string);
+    
     event Borrowed(address, uint);
     event Payback(address, uint);
-    //event DebtIsPayedBack(string, address, string, address);
     event DebtReview(address, uint);
-    //event DebtReviewError(string);
-    
     
     modifier onlyOwner() {
        require(msg.sender == owner);
