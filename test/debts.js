@@ -101,4 +101,14 @@ contract('Debts', function (accounts) {
 
 
     it('should direct you for inventing more tests'); // :)  ¯\_(ツ)_/¯
+
+
+    it('should return true for successful repay', async  () => {
+        const borrower = accounts[3];
+        const value = 1000;
+        await debts.borrow(value, {from: borrower});
+        let res = await debts.repay.call(borrower, value, {from: OWNER})
+        assert.isTrue(res)
+
+    });
 });
