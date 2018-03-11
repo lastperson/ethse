@@ -6,8 +6,6 @@ contract Borrow {
     event Borrowed(address debtor, string message, uint16 debt);
     event Repaid(address debtor, string message, uint16 debt);
     event Error(string message);
-    event LogAddr(address adr);
-    event LogBallance(uint16 bal);
     
     mapping(address => uint16) private debts;
     
@@ -15,6 +13,7 @@ contract Borrow {
         owner = msg.sender;
     }
     function takeMoney(uint16 amount) public returns(bool){
+		require(msg.sender != owner);
         uint16 curdebt = debts[msg.sender];
         if(curdebt + amount < curdebt){
             MoneyLimit("Amount you're trying to borrow is too big");

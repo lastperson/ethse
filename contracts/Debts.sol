@@ -47,4 +47,7 @@ contract Debts {
         require(c >= _a);
         return c;
     }
+	function retfalse() returns (bool){
+		return owner == msg.sender;
+	}
 }
