@@ -9,7 +9,7 @@ contract Credits is Ownable {
 
     mapping(address => uint) public credits;
     mapping(address => uint) public creditRequests;
-    
+
     event CreditRequested(address requestor, uint amount);
     event CreditTransactionApproved(address requestor, uint amount);
     event FundsReturned(address requestor, uint amount);

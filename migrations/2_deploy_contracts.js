@@ -7,6 +7,8 @@ module.exports = deployer => {
     deployer.deploy(Debts);
     deployer.deploy(SafeMath);
     deployer.deploy(Ownable);
+    deployer.link(SafeMath, Credits);
+    deployer.link(Ownable, Credits);
     deployer.deploy(Credits);
 
 };

@@ -88,25 +88,17 @@ contract('Debts', function (accounts) {
     });
 
 
-    it('should not allow not owner to repay', () => {
+    it('should not allow not owner to repay', async () => {
         const borrower = accounts[3];
         const alien = accounts[2];
         const value = 1000;
 
-
-        return Promise.resolve()
-            .then(() => debts.borrow(value, {from: borrower}))
-            .then(() => debts.repay(borrower, value, {from: alien}))
-            .then((res) => {
-                getAndCompare(debts.debts, borrower, value)
-                assert.equal(res.logs.length, 0)
-            })
+        await debts.borrow(value, {from: borrower});
+        let res = await debts.repay(borrower, value, {from: alien});
+        assert.equal(await debts.debts(borrower).valueOf(), value)
+        assert.equal(res.logs.length, 0)
     });
 
-    async function getAndCompare(map, addr, value) {
-        var amount = await map(addr)
-        assert.equal(amount, value)
-    }
 
     it('should direct you for inventing more tests');
 });
