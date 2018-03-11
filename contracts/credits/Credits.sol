@@ -25,7 +25,7 @@ contract Credits is Ownable {
         return creditRequests[requestor];
     }
     
-    function approveCretidTransaction(address addr, uint approveAmount) onlyOwner public returns(bool){
+    function approveCreditTransaction(address addr, uint approveAmount) onlyOwner public returns(bool){
         uint askedAmount = creditRequests[addr];
         require(approveAmount > 0 && approveAmount <= askedAmount);
         creditRequests[addr] = SafeMath.sub(creditRequests[addr], approveAmount);

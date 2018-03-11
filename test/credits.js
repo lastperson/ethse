@@ -21,22 +21,20 @@ contract('Credits', function (accounts) {
         const amount = 1000;
         let res = await credits.creditRequest(amount, {from: borrower});
         assert.equal(await credits.creditRequests(borrower), amount);
-        assert.equal(res.logs[0].event, 'CreditRequested');
 
     });
 
     it('should fail on overflow while crediting', async () => {
         const borrower = accounts[3];
         const amount = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
-        await credits.creditRequests(amount, {from: borrower})
-        asserts.throws(credits.creditRequests(1, {from: borrower}))
+        await credits.creditRequest(amount, {from: borrower})
+        await asserts.throws(credits.creditRequest(1, {from: borrower}))
     });
 
     it('should emit event after credit request', async () => {
         const borrower = accounts[3];
         const amount = 1000;
         let result = await credits.creditRequest(amount, {from: borrower});
-        console.log(result.logs[0])
         assert.equal(result.logs[0].event, 'CreditRequested');
         assert.equal(result.logs[0].args.requestor, borrower);
         assert.equal(result.logs[0].args.amount.valueOf(), amount);
@@ -57,7 +55,7 @@ contract('Credits', function (accounts) {
         const borrower = accounts[3];
         const amount = 1000;
         let res = await credits.creditRequest(amount, {from: borrower});
-        await  credits.approveCretidTransaction(borrower, amount, {from: OWNER});
+        await  credits.approveCreditTransaction(borrower, amount, {from: OWNER});
         assert.equal(await credits.creditRequests(borrower), 0);
         assert.equal(await credits.credits(borrower), amount);
 
@@ -67,7 +65,7 @@ contract('Credits', function (accounts) {
         const borrower = accounts[3];
         const amount = 1000;
         let res = await credits.creditRequest(amount, {from: borrower});
-        await  asserts.throws(credits.approveCretidTransaction(borrower, amount+1, {from: OWNER}));
+        await  asserts.throws(credits.approveCreditTransaction(borrower, amount+1, {from: OWNER}));
         assert.equal(await credits.creditRequests(borrower), amount);
         assert.equal(await credits.credits(borrower), 0);
 
@@ -77,7 +75,7 @@ contract('Credits', function (accounts) {
         const borrower = accounts[3];
         const amount = 1000;
         await credits.creditRequest(amount, {from: borrower});
-        let result = await  credits.approveCretidTransaction(borrower, amount, {from: OWNER});
+        let result = await  credits.approveCreditTransaction(borrower, amount, {from: OWNER});
         assert.equal(result.logs[0].event, 'CreditTransactionApproved');
     });
 
@@ -86,7 +84,7 @@ contract('Credits', function (accounts) {
         const borrower = accounts[3];
         const alien = accounts[2];
         await credits.creditRequest(value, {from: borrower});
-        await asserts.throws(credits.approveCretidTransaction(value, {from: alien}))
+        await asserts.throws(credits.approveCreditTransaction(value, {from: alien}))
     });
 
     it('owner can approve not all credit request', async () => {
@@ -94,7 +92,7 @@ contract('Credits', function (accounts) {
         const amount = 1000;
         let res = await credits.creditRequest(amount, {from: borrower});
         res = await credits.creditRequest(amount, {from: borrower});
-        await  credits.approveCretidTransaction(borrower, amount, {from: OWNER});
+        await  credits.approveCreditTransaction(borrower, amount, {from: OWNER});
         assert.equal(await credits.creditRequests(borrower), amount);
         assert.equal(await credits.credits(borrower), amount);
 
@@ -104,7 +102,7 @@ contract('Credits', function (accounts) {
         const borrower = accounts[3];
         const amount = 1000;
         await credits.creditRequest(amount, {from: borrower});
-        await  credits.approveCretidTransaction(borrower, amount, {from: OWNER});
+        await  credits.approveCreditTransaction(borrower, amount, {from: OWNER});
         await  credits.returnFunds(borrower, amount, {from: OWNER});
 
         assert.equal(await credits.credits(borrower), 0);
@@ -117,17 +115,17 @@ contract('Credits', function (accounts) {
         const alien = accounts[2];
         const amount = 1000;
         await credits.creditRequest(amount, {from: borrower});
-        await  credits.approveCretidTransaction(borrower, amount, {from: OWNER});
+        await  credits.approveCreditTransaction(borrower, amount, {from: OWNER});
         await  asserts.throws(credits.returnFunds(borrower, amount, {from: alien}));
         assert.equal(await credits.credits(borrower), amount);
 
     });
 
-    it('owner cannot return more funds than borrowed', async () => {
+    it('owner cannot return more funds than was borrowed', async () => {
         const borrower = accounts[3];
         const amount = 1000;
         await credits.creditRequest(amount, {from: borrower});
-        await  credits.approveCretidTransaction(borrower, amount, {from: OWNER});
+        await  credits.approveCreditTransaction(borrower, amount, {from: OWNER});
         await  asserts.throws(credits.returnFunds(borrower, amount+1, {from: OWNER}));
 
         assert.equal(await credits.credits(borrower), amount);
@@ -138,7 +136,7 @@ contract('Credits', function (accounts) {
         const borrower = accounts[3];
         const amount = 1000;
         await credits.creditRequest(amount, {from: borrower});
-        await  credits.approveCretidTransaction(borrower, amount, {from: OWNER});
+        await  credits.approveCreditTransaction(borrower, amount, {from: OWNER});
         let result = await  credits.returnFunds(borrower, amount, {from: OWNER});
         assert.equal(result.logs[0].event, 'FundsReturned');
         assert.equal(result.logs[0].args.amount.valueOf(), amount);
@@ -148,7 +146,7 @@ contract('Credits', function (accounts) {
         const borrower = accounts[3];
         const amount = 1000;
         await credits.creditRequest(amount*2, {from: borrower});
-        await  credits.approveCretidTransaction(borrower, amount*2, {from: OWNER});
+        await  credits.approveCreditTransaction(borrower, amount*2, {from: OWNER});
         assert.equal(await credits.credits(borrower), amount*2);
         await  credits.returnFunds(borrower, amount, {from: OWNER});
         assert.equal(await credits.credits(borrower), amount);

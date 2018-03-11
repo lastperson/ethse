@@ -88,7 +88,7 @@ contract('Debts', function (accounts) {
     });
 
 
-    it('should not allow not owner to repay', async () => {
+    it('should not allow owner to repay', async () => {
         const borrower = accounts[3];
         const alien = accounts[2];
         const value = 1000;
@@ -100,5 +100,5 @@ contract('Debts', function (accounts) {
     });
 
 
-    it('should direct you for inventing more tests');
+    it('should direct you for inventing more tests'); // :)  ¯\_(ツ)_/¯
 });
