@@ -1,4 +1,4 @@
-pragma solidity 0.4.20;
+pragma solidity 0.4.15;
 
 contract LoanManager {
 
@@ -33,7 +33,7 @@ contract LoanManager {
     /**
     * @dev Substracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
     */
-    function sub(uint a, uint b) internal pure returns (uint) {
+    function sub(uint a, uint b) internal returns (uint) {
         assert(b <= a);
         return a - b;
     }
@@ -41,7 +41,7 @@ contract LoanManager {
     /**
     * @dev Adds two numbers, throws on overflow.
     */
-    function add(uint a, uint b) internal pure returns (uint) {
+    function add(uint a, uint b) internal returns (uint) {
         uint c = a + b;
         assert(c >= a);
         return c;
