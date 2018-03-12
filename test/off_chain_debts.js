@@ -20,7 +20,7 @@ contract('OffChainDebts', function(accounts) {
     const borrower = accounts[3];
     const value = 1000;
     await debts.borrow.call(value, {from: borrower});
-    await debts.borrow.call(value, {from: borrower});
+    await debts.repay.call(borrower, value, {from: borrower});
     let promise = await debts.debts.call(borrower);
     assert.equal(promise.getNumber(), 0);
   });
