@@ -22,7 +22,7 @@ contract('OffChainDebts', function(accounts) {
     await debts.borrow.call(value, {from: borrower});
     await debts.borrow.call(value, {from: borrower});
     let promise = await debts.debts.call(borrower);
-    assert.equal(promise.getNUmber(), 0);
+    assert.equal(promise.getNumber(), 0);
   });
 
   it('should fail on overflow when borrowing', () => {
