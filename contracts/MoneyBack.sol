@@ -1,12 +1,13 @@
-pragma solidity ^0.4.15;
+pragma solidity 0.4.15;
 
 contract MoneyBack{
+    
     address public owner;
     mapping (address => uint) public debt;
     
-    event Borrowed(address, uint);
-    event Payback(address, uint);
-    event DebtReview(address, uint);
+    event Borrowed(address _by, uint _amount);
+    event Payback(address _by, uint _amount);
+    event DebtReview(address _by, uint _amount);
     
     modifier onlyOwner() {
        require(msg.sender == owner);
@@ -17,6 +18,7 @@ contract MoneyBack{
         require(msg.sender != owner);
         _;
     }
+    
     
     function MoneyBack() {
         owner = msg.sender;
@@ -60,7 +62,7 @@ contract MoneyBack{
         return true;
     }
     
-    function reviewDebt() onlyNotOwner public returns (uint) {
+    function reviewDebtBorrower() onlyNotOwner public returns (uint) {
        DebtReview(msg.sender, debt[msg.sender]);
        return debt[msg.sender];
     }
