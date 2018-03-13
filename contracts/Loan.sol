@@ -38,12 +38,12 @@ contract Loan {
         return true;
     }
 
-    function _safeSub(uint _a, uint _b) internal pure returns(uint) {
+    function _safeSub(uint _a, uint _b) internal constant returns(uint) {
         require(_b <= _a);
         return _a - _b;
     }
 
-    function _safeAdd(uint _a, uint _b) internal pure returns(uint) {
+    function _safeAdd(uint _a, uint _b) internal constant returns(uint) {
         uint c = _a + _b;
         require(c >= _a);
         return c;
