@@ -96,4 +96,6 @@ contract('OXO Game', function (accounts) {
     }
     assert.equal(drawsCount, 3);
   });
+
+  it('more tests are comming...');
 });
