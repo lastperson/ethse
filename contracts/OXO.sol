@@ -140,7 +140,7 @@ contract OXO {
         return true;
     } 
 
-    function isMoveUnique(uint gameId, uint fieldNumber) private returns(bool) {
+    function isMoveUnique(uint gameId, uint fieldNumber) constant private returns(bool) {
         Game storage game = games[gameId];
         // check player1 moves
         for (uint i = 0; i < game.moves[game.player1].length; i++) {
@@ -184,7 +184,7 @@ contract OXO {
             game.status = GameStatus.Finished;
     }
 
-    function payReward(uint gameId) private {
+    function payReward(uint gameId) constant private {
         Game storage game = games[gameId];
         require(game.status == GameStatus.Finished);
 
