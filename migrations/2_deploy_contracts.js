@@ -3,6 +3,6 @@ var Debts = artifacts.require("MyOXO");
 module.exports = function(deployer) {
   
   deployer.deploy(Loan);
-  deployer.deploy(myOXO);
+  deployer.deploy(MyOXO);
 };
 
