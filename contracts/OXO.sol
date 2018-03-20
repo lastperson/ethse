@@ -88,7 +88,7 @@ contract OXO {
     function makeMove(uint gameId, uint8 fieldNumber) public returns(bool) {
         require(fieldNumber >= 1 && fieldNumber <= 9);
         require(games[gameId].currentPlayer == msg.sender);
-        require(games[gameId].status == GameStatus.New || games[gameId].status == GameStatus.Started);
+        require(games[gameId].status == GameStatus.Started);
 
         // check if a field is taken
         if (!isMoveUnique(gameId, fieldNumber)) {
@@ -186,7 +186,6 @@ contract OXO {
 
     function payReward(uint gameId) constant private {
         Game storage game = games[gameId];
-        require(game.status == GameStatus.Finished);
 
         // the winnerPlayer takes greens, otherwise it is DRAW
         if (game.winnerPlayer != 0) {
