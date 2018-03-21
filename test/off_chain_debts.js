@@ -16,11 +16,35 @@ contract('OffChainDebts', function(accounts) {
     .then(reverter.snapshot);
   });
 
+  it('should allow to borrow', () => {
+    const borrower = accounts[3];
+    const value = 1000;
+    return Promise.resolve()
+    .then(() => debts.borrow(value, {from: borrower}))
+    .then(() => debts.debts(borrower))
+    .then(asserts.equal(value));
+  });
+
+  it('should not allow to borrow 0', () => {
+    const borrower = accounts[3];
+    const value = 0;
+    return Promise.resolve()
+    .then(() => asserts.throws(debts.borrow(value, {from: borrower})));
+  });
+
+  it('should not allow to repay 0', () => {
+    const borrower = accounts[3];
+    const value = 1000;
+    return Promise.resolve()
+    .then(() => debts.borrow(value, {from: borrower}))
+    .then(() => asserts.throws(debts.repay(borrower, 0, {from: OWNER})));
+  });
+
   it('should allow to repay', () => async function () {
     const borrower = accounts[3];
     const value = 1000;
-    await debts.borrow.call(value, {from: borrower});
-    await debts.repay.call(borrower, value, {from: borrower});
+    await debts.borrow(value, {from: borrower});
+    await debts.repay(borrower, value, {from: borrower});
     let promise = await debts.debts.call(borrower);
     assert.equal(promise.getNumber(), 0);
   });
@@ -33,6 +57,19 @@ contract('OffChainDebts', function(accounts) {
     .then(() => asserts.throws(debts.borrow(1, {from: borrower})));
   });
 
+  it('should emit Borrowed event on borrow', () => {
+    const borrower = accounts[3];
+    const value = 1000;
+    return Promise.resolve()
+    .then(() => debts.borrow(value, {from: borrower}))
+    .then(result => {
+      assert.equal(result.logs.length, 1);
+      assert.equal(result.logs[0].event, 'BorrowLogger');
+      assert.equal(result.logs[0].args.ammount.valueOf(), value);
+      assert.equal(result.logs[0].args.balance.valueOf(), value);
+    });
+  });
+
   it('should emit RepayLogger with Balance on repay', () => {
     const borrower = accounts[3];
     const borrowValue = 1000;
@@ -40,7 +77,6 @@ contract('OffChainDebts', function(accounts) {
     return Promise.resolve()
     .then(() => debts.borrow(borrowValue, {from: borrower}))
     .then(() => debts.repay(borrower, repayValue, {from: OWNER}))
-
     .then(result => {
       assert.equal(result.logs.length, 1);
       assert.equal(result.logs[0].event, 'RepayLogger');
@@ -57,5 +93,6 @@ contract('OffChainDebts', function(accounts) {
     .then(() => debts.borrow(value, {from: borrower}))
     .then(() => asserts.throws(debts.repay(borrower, valueRepay, {from: OWNER})));
   });
+
 
 });
