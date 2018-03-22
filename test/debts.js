@@ -27,7 +27,7 @@ contract('Debts', function(accounts) {
     .then(asserts.equal(0));
   });
 
-  it.only('should fail on overflow when borrowing', () => {
+  it('should fail on overflow when borrowing', () => {
     const borrower = accounts[3];
     const value = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
     return Promise.resolve()

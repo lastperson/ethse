@@ -124,7 +124,7 @@ contract('Oxo', function(accounts) {
 
 //////////////////// checkWiner//////////////////////////
 
-            it.only('check win on checkWiner', () => {
+            it('check win on checkWiner', () => {
 
                 return Promise.resolve()
                     .then(() => oxoInst.joinGame({from: player1,
