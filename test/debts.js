@@ -27,13 +27,11 @@ contract('Debts', function(accounts) {
     .then(asserts.equal(0));
   });
 
-  it('should fail on overflow when borrowing', () => {
+  it.only('should fail on overflow when borrowing', () => {
     const borrower = accounts[3];
     const value = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
     return Promise.resolve()
     .then(() => debts.borrow(value, {from: borrower}))
-        // .then(() => debts.debts(borrower))
-        // .then(debtResult => console.log(Number(debtResult)))
     .then(() => asserts.throws(debts.borrow(1, {from: borrower})));
   });
 
