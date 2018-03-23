@@ -23,11 +23,11 @@ contract OxoGame is OxoConfig, GameEntity, GameAction, Players {
         require(msg.value > 0 && msg.value <= maxBet);
 
         Game memory  game;
-        game.status = GameStatus.CREATED;
-        game.bet = msg.value;
+//        game.status = GameStatus.CREATED;
+//        game.bet = msg.value;
         uint gameId = games.push(game) + 1;
-        addPlayer(gameId, msg.sender);
-        GameCreated(gameId, msg.sender, game.bet);
+//        addPlayer(gameId, msg.sender);
+//        GameCreated(gameId, msg.sender, game.bet);
         return gameId;
     }
 
