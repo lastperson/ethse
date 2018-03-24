@@ -1,5 +1,5 @@
-const Debts = artifacts.require('./Debts.sol');
+const Credit = artifacts.require('./Credit.sol');
 
 module.exports = deployer => {
-  deployer.deploy(Debts);
+  deployer.deploy(Credit);
 };
