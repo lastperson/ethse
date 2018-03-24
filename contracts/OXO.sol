@@ -4,27 +4,30 @@ contract OXO {
  
     event BidEvent(address addr, uint ammount);
     event MarkEvent(address addr, uint x, uint y);
-    event ErrorEvent(address addr, string message);
+    event ErrorEvent(string message);
+    event WinnerEvent(uint8 winner);
 
-    //event RepayLogger(address addr, uint ammount, uint balance);
-    
     address player1;
     address player2;
     uint player1Bid;
     uint player2Bid;
-    int8[3][] grid;
-    int8 lastMarkByPlayer = 0;
+    uint8[3][] grid;
+    uint8 lastMarkByPlayer = 0;
     uint lastMarkTimestamp = 0;
     
     function OXO() public {
-        grid = new int8[3][](3);
+        grid = new uint8[3][](3);
     }
 
     function bidAndPlay() public payable returns (bool) {
         if (player1==0){
+            if (player2!=0){
+                require(msg.value == player2Bid);
+            }
             player1 = msg.sender;
             player1Bid = msg.value;
-        } else if (player2==0){ // TODO check equal ammount for both players
+        } else if (player2==0){ 
+            require(msg.value == player1Bid);
             player2 = msg.sender;
             player2Bid = msg.value;
         } else {
@@ -36,7 +39,7 @@ contract OXO {
     
     // Money can be withdrawn if:
     // 1) Game is not started yet (nobody put a first mark)
-    // 2) One of the players didn't put mark for an hour. In that case all bank can be withdrown by other player
+    // 2) // TODO One of the players didn't put mark for an hour. In that case all bank can be withdrown by other player
     function withdrawMoney() public returns(bool) {
         if(lastMarkByPlayer==0){
             if(msg.sender==player1){
@@ -57,64 +60,73 @@ contract OXO {
             require(lastMarkByPlayer!=1);
         } else if (msg.sender==player2){
             require(lastMarkByPlayer!=2);
+        } else {
+            ErrorEvent("Somebody else tries to intervine");
         }
         
         // out of grid check
-        if(x>=3){
-            // TODO
-            return false;
-        }
-        if(y>=3){
-             // TODO
-            return false;
-        }
-        if (grid[x][y]!=0){
-            // TODO
-            return false;
-        } else if(msg.sender == player1) {
+        require(x<3 && y<3);
+       
+        // already taken
+        require (grid[x][y]==0);
+
+        if(msg.sender == player1) {
             grid[x][y] = 1; // e.g. X
             lastMarkByPlayer = 1;
         } else if(msg.sender == player2) {
             grid[x][y] = 2; // e.g. 0
             lastMarkByPlayer = 2;
         }
+        MarkEvent(msg.sender, x, y);
         lastMarkTimestamp = now;
-        _checkIfSomebodyWins();
-        return true;
+        
+        // check if free positions available
+        bool slotsAvailable = _checkIfThereIsSlots();
+
+        uint8 winner = checkIfSomebodyWins();
+        WinnerEvent(winner);
+        if (winner==1) {
+            player1.transfer(this.balance);
+            return true;
+        } else if (winner==2){
+            player2.transfer(this.balance);
+            return true;
+        } else if(!slotsAvailable){  
+            // draw (all positions are taken but there is no winner)
+            // send bids back to the players
+            player1.transfer(this.balance / 2);
+            player2.transfer(this.balance);
+        } // else { game is going on}
+        return false;
     }
     
-    function _checkIfSomebodyWins () internal {
-        // todo check if free positions available
-        bool slotsAvailable = _checkIfThereIsSlots();
-        int8 winner = 0; // nobody
+    // returns number of the player, if no winner yet or draw - returns 0
+    function checkIfSomebodyWins () public constant returns (uint8) {
+        uint8 winner = 0; // nobody
         for (uint i = 0 ;i<3;i++){
             // checking horizontals
-            if(grid[i][0] == grid[i][1] && grid[i][1] == grid[i][2]){
+            if(grid[i][0] == grid[i][1] && grid[i][1] == grid[i][2] && grid[i][0]!=0){
                winner = grid[i][0];
                break;
             }
             // checking verticals
-            if(grid[0][i] == grid[1][i] && grid[1][i] == grid[2][i]){
+            if(grid[0][i] == grid[1][i] && grid[1][i] == grid[2][i] && grid[0][i]!=0){
                winner = grid[0][i];
                break;
             }
         }    
         // checking diagonals
-        if(grid[0][0] == grid[1][1] && grid[1][1] == grid[2][2] || grid[0][2] == grid[1][1] && grid[1][1] == grid[2][0]){
-           winner = grid[1][1];
+        if((grid[0][0] == grid[1][1] && grid[1][1] == grid[2][2]) || (grid[0][2] == grid[1][1] && grid[1][1] == grid[2][0])){
+           if(grid[1][1]!=0) {
+                winner = grid[1][1];
+            }
         }
+        return winner;
         
-        if (winner==1) {
-            player1.transfer(this.balance);
-        } else if (winner==2){
-            player2.transfer(this.balance);
-        } else if(!slotsAvailable){  // draw (all positions are taken but there is no winner)
-            player1.transfer(this.balance/2);
-            player2.transfer(this.balance/2);
-        }
     }
     
-    function _checkIfThereIsSlots () internal returns (bool) {
+    // returns true if there is empty slots in the grid
+    function _checkIfThereIsSlots () internal constant returns (bool) {
         for (uint i = 0 ;i<3;i++){
             for (uint j = 0 ;j<3;j++){
                 if (grid[i][j] == 0) {
@@ -123,6 +135,10 @@ contract OXO {
             }
         }
        return false;
+    }
+
+    function getBalance() public constant returns(uint) {
+        return this.balance;
     }
    
    
