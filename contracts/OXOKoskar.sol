@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity 0.4.15;
 
 //Game board is a [0-8] array 
 //Game starts when the first player makes a valid turn.
@@ -22,11 +22,11 @@ contract OXOKoskar {
     address player1;
     address player2;
     
-    event playerJoined(address player, string msg);
+    event playerJoined(address player, string message);
     event Turn(address player, uint8 cell);
     event Win(address winner, uint gain);
     event Standoff();
-    event Error(string msg);
+    event Error(string message);
 
 
 function makeTurn(uint8 cell) validBid public payable returns(string) {
