@@ -40,13 +40,13 @@ contract('OffChainDebts', function(accounts) {
     .then(() => asserts.throws(debts.repay(borrower, 0, {from: OWNER})));
   });
 
-  it('should allow to repay', () => async function () {
+  it('should allow to repay', async () => {
     const borrower = accounts[3];
     const value = 1000;
     await debts.borrow(value, {from: borrower});
-    await debts.repay(borrower, value, {from: borrower});
-    let promise = await debts.debts.call(borrower);
-    assert.equal(promise.getNumber(), 0);
+    await debts.repay(borrower, value, {from: OWNER});  
+    var debt = await debts.debts(borrower);
+    assert.equal(debt.valueOf(), 0);
   });
 
   it('should fail on overflow when borrowing', () => {
