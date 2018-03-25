@@ -4,25 +4,28 @@ import "./GameEntity.sol";
 
 contract Players is GameEntity {
 
-    function addPlayer(uint gameId, address player) internal {
-        games[gameId].players.push(player);
-        games[gameId].playerCount += 1;
+    event TEST1(uint8 id );
+    function addPlayer(Game storage game, address player) internal {
+        game.players[player] = true;
+        game.playerArr.push(player);
+        game.playerCount += 1;
     }
 
-    function addCanceler(uint gameId, address player) internal {
-        games[gameId].cancelers.push(player);
-        games[gameId].cancelerCount += 1;
+    function addCanceler(Game storage game, address player) internal {
+        game.cancelerCount += 1;
+        game.cancelers[player] = true;
+
     }
 
-    function isPlayer(uint gameId, address player) internal view returns(bool){
-        return games[gameId].players[0] == player || games[gameId].players[1] == player;
+    function isPlayer(Game storage game, address player) internal view returns(bool){
+        return game.players[player];
     }
 
-    function isCanceler(uint gameId, address player) internal view returns(bool){
-        return games[gameId].cancelers[0] == player || games[gameId].cancelers[1] == player;
+    function isCanceler(Game storage game, address player) internal view returns(bool){
+        return game.cancelers[player];
     }
 
-    function player(uint gameId, uint8 index) internal view returns(address){
-        return games[gameId].players[index];
+    function player(Game memory game, uint8 index) internal pure returns(address){
+        return index < game.playerArr.length ? game.playerArr[index] : address(0);
     }
 }

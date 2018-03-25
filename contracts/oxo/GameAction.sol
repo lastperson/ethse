@@ -5,20 +5,17 @@ import "./GameEntity.sol";
 contract GameAction is GameEntity {
 
 
-    function addMove(uint gameId, uint8 move, address addr) internal {
-        games[gameId].moves[addr][move] = true;
-        games[gameId].moveCount[addr] += 1;
-        games[gameId].allMoves[move] = true;
-        games[gameId].allMoveCount += 1;
+    function addMove(Game  storage game, uint8 move, address addr) internal {
+        game.moves[addr][move] = true;
+        game.moveCount[addr] += 1;
+        game.allMoves[move] = true;
+        game.allMoveCount += 1;
 
-        games[gameId].lastMove = msg.sender;
+        game.lastMove = addr;
     }
 
-    function isMoved(uint gameId, uint8 move) internal view returns (bool){
-        return games[gameId].allMoves[move];
+    function isMoved(Game  storage game, uint8 move) internal view returns (bool){
+        return game.allMoves[move];
     }
 
-    function isMoved(uint gameId, address addr, uint8 move) internal view returns (bool){
-        return games[gameId].moves[addr][move];
-    }
 }

@@ -23,9 +23,6 @@ contract OxoConfig {
     uint8 maxPlayerCount = 2;
     uint maxBet = (UINT256_MAX / 2) - 1;
 
-
-
-
     // contract need to earn something on the game. At least 5%
     function calculateUserPayout(uint amount) view internal returns(uint){
         uint num = amount / 100 * feePercentage;

@@ -5,6 +5,7 @@ contract GameEntity {
     struct Game {
         GameStatus status;
         uint bet;
+        uint gameId;
 
         mapping(address => mapping(uint8 => bool)) moves;
         mapping(address => uint8) moveCount;
@@ -12,13 +13,20 @@ contract GameEntity {
         uint8 allMoveCount;
 
         uint8 playerCount;
-        address[] players;
         uint8 cancelerCount;
-        address[] cancelers;
+        mapping(address => bool) players;
+        address[] playerArr;
+        mapping(address => bool) cancelers;
+
 
         address winner;
         address lastMove;// helps define whom should move next
     }
 
     Game[] internal games;
+
+    function createAndGetGame() internal returns  (Game storage){
+        games.length += 1;
+        return games[games.length -1];
+    }
 }
