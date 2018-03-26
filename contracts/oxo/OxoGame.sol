@@ -24,16 +24,15 @@ contract OxoGame is OxoConfig, GameEntity, GameAction, Players, Ownable {
     function createGame() payable public returns (uint){
         require(msg.value > 0 && msg.value <= maxBet);
 
-        games.length += 1;
-        uint gameId = games.length - 1;
-        Game storage game = games[gameId];
+
+        Game storage game = createAndGetGame();
         game.status = GameStatus.CREATED;
         game.bet = msg.value;
         game.gameId = games.length - 1;
         addPlayer(game, msg.sender);
 
-        GameCreated(gameId, msg.sender, game.bet);
-        return gameId;
+        GameCreated(game.gameId, msg.sender, game.bet);
+        return game.gameId;
     }
 
     function joinGame(uint gameId) payable public returns (bool){
