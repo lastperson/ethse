@@ -4,7 +4,6 @@ import "./GameEntity.sol";
 
 contract Players is GameEntity {
 
-    event TEST1(uint8 id );
     function addPlayer(Game storage game, address player) internal {
         game.players[player] = true;
         game.playerArr.push(player);
@@ -14,7 +13,6 @@ contract Players is GameEntity {
     function addCanceler(Game storage game, address player) internal {
         game.cancelerCount += 1;
         game.cancelers[player] = true;
-
     }
 
     function isPlayer(Game storage game, address player) internal view returns(bool){
