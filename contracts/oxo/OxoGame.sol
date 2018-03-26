@@ -3,12 +3,13 @@ pragma solidity 0.4.19;
 import "./OxoConfig.sol";
 import "./Players.sol";
 import "./GameAction.sol";
+import "./Ownable.sol";
 
 /*In this game one user create a game and set how much he wants to bet.
 Another user should join the game and send equivalent bet number.
 Then game starts*/
 
-contract OxoGame is OxoConfig, GameEntity, GameAction, Players {
+contract OxoGame is OxoConfig, GameEntity, GameAction, Players, Ownable {
 
     event GameCreated(uint gameId, address creator, uint bet);
     event GameStarted(uint gameId, address player);
@@ -17,6 +18,7 @@ contract OxoGame is OxoConfig, GameEntity, GameAction, Players {
     event Draw(uint gameId);
     event MoneyTransferred(uint gameId, address player, uint amount);
     event GameCanceled(uint gameId);
+    event MoneyWithdrawn(address addr, uint amount);
 
 
     function createGame() payable public returns (uint){
@@ -106,23 +108,31 @@ contract OxoGame is OxoConfig, GameEntity, GameAction, Players {
         games[game.gameId].status = GameStatus.FINISHED;
 
         uint userPayout = calculateUserPayout(game.bet);
+        uint fee = game.bet - userPayout;
         if (game.winner != 0) {
-            uint transfer = userPayout * 2;
-            game.winner.transfer(transfer);
-            MoneyTransferred(game.gameId, game.winner, transfer);
+            transferGameReward(game.winner, game, fee * 2, userPayout * 2);
         } else {
             //in case of draw or if users decide to cancel a game
             address player1 = player(game, 0);
             address player2 = player(game, 1);
-            if (player1 != 0) {
-                player1.transfer(userPayout);
-                MoneyTransferred(game.gameId, player1, userPayout);
-            }
-            if (player2 != 0) {
-                player2.transfer(userPayout);
-                MoneyTransferred(game.gameId, player2, userPayout);
-            }
+            transferGameReward(player1, game, fee, userPayout);
+            transferGameReward(player2, game, fee, userPayout);
         }
+    }
+
+    function transferGameReward(address addr, Game memory game, uint fee, uint payout) private {
+        if (addr != 0){
+            addr.transfer(payout);
+            addToBalance(fee);
+            MoneyTransferred(game.gameId, addr, payout);
+        }
+    }
+
+    function withdrawBalance(uint amount) onlyOwner public {
+        require(contractBalance >= amount);
+        msg.sender.transfer(amount);
+        contractBalance -= amount;
+        MoneyWithdrawn(msg.sender, amount);
     }
 
 }

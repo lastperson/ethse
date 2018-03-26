@@ -17,6 +17,7 @@ contract OxoConfig {
     ];
 
     uint8 private feePercentage = 5;
+    uint internal contractBalance;
     uint256 constant private UINT256_MAX = ~uint256(0);
 
     uint8 maxFieldNumber = 9;
@@ -27,6 +28,12 @@ contract OxoConfig {
     function calculateUserPayout(uint amount) view internal returns(uint){
         uint num = amount / 100 * feePercentage;
         return amount - num;
+    }
+
+    function addToBalance(uint amount) internal {
+        if (contractBalance + amount < UINT256_MAX){ // TODO: need to create new balance value and push it to an array;
+            contractBalance+=amount;
+        }
     }
 
 

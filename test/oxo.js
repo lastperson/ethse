@@ -304,6 +304,36 @@ contract('OXO', function (accounts) {
         assert.equal(result.logs[3].args.amount.valueOf(),  userPayout(defaultBet));
     });
 
+    it('should allow owner to withdraw money', async () => {
+
+        const player1 = accounts[1];
+        const player2 = accounts[2];
+        await oxo.createGame({from: player1, value: defaultBet});
+        await oxo.joinGame(defaultGameId, {from: player2, value: defaultBet});
+        await oxo.cancelGame(defaultGameId, {from: player1});
+        await oxo.cancelGame(defaultGameId, {from: player2});
+        var result = await oxo.withdrawBalance(100, {from: OWNER});
+
+        assert.equal(result.logs[0].event, 'MoneyWithdrawn');
+        assert.equal(result.logs[0].args.addr.valueOf(), OWNER);
+        assert.equal(result.logs[0].args.amount.valueOf(), 100);
+    });
+
+    it('should deny not owner to withdraw money', async () => {
+
+        const player1 = accounts[1];
+        const player2 = accounts[2];
+        await oxo.createGame({from: player1, value: defaultBet});
+        await oxo.joinGame(defaultGameId, {from: player2, value: defaultBet});
+        await oxo.cancelGame(defaultGameId, {from: player1});
+        await oxo.cancelGame(defaultGameId, {from: player2});
+        await asserts.throws(oxo.withdrawBalance(100, {from: player1}));
+    });
+
+
+
+
+
     function l(text) {
         console.log(text);
     }
