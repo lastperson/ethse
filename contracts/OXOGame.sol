@@ -1,8 +1,8 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.19;
 contract OXOGame {
 
     uint8[3][3] board;
-    uint8 state; //0 - ready to start, 1 - 1 player ready, 2 - 2 player
+    uint8 public state; //0 - ready to start, 1 - 1 player ready, 2 - 2 player
     address player1;
     address player2;
     uint bid;
@@ -29,7 +29,16 @@ contract OXOGame {
                 board[i][j] = 0;
             }
         }
-        emit GameReady();
+        GameReady();
+    }
+    function GetBid() external view returns(uint){
+      return bid;
+    }
+    function GetState() external view returns(uint8){
+      return state;
+    }
+    function GetPlayerToMove() external view returns(uint8){
+      return playerToMove;
     }
     function AddPlayer()payable external {
         require(msg.value > 0 && msg.value < 100 ether);
@@ -38,7 +47,7 @@ contract OXOGame {
             bid = msg.value;
             player1 = msg.sender;
             state = 1;
-            emit PlayerAdded(player1,1);
+            PlayerAdded(player1,1);
         }
         else {// if(state == 1)
             require(msg.sender != player1);
@@ -47,7 +56,7 @@ contract OXOGame {
             state = 2;
             playerToMove = 1;
             lastMoveDate = now;
-            emit PlayerAdded(player2, 2);
+            PlayerAdded(player2, 2);
         }
     }
     function MakeMove(uint8 x, uint8 y) external {
@@ -56,7 +65,7 @@ contract OXOGame {
         require(msg.sender == player1 || msg.sender == player2);
         require((playerToMove == 1 && msg.sender == player1) || (playerToMove == 2 && msg.sender == player2));
         require(board[x][y] == 0);
-        
+
         board[x][y] = playerToMove;
         if(CheckWin(x,y)){
             ProcessWin();
@@ -73,18 +82,18 @@ contract OXOGame {
     function ProcessWin() internal{
         if(playerToMove == 1){
             player1.transfer(bid*2);
-            emit GameEndInWin(player1,1);
+            GameEndInWin(player1,1);
         }
         else if (playerToMove == 2){
             player2.transfer(bid*2);
-            emit GameEndInWin(player2,2);
+            GameEndInWin(player2,2);
         }
         Reset();
     }
     function ProcessDraw() internal {
         player1.transfer(bid);
         player2.transfer(bid);
-        emit GameEndInDraw();
+        GameEndInDraw();
         Reset();
     }
     function CheckWin(uint8 x, uint8 y) internal view returns(bool){
@@ -97,12 +106,12 @@ contract OXOGame {
                 return true;
             }
         return false;
-        
+
     }
     function CheckDraw() internal view returns(bool){
         return numMove == 9;
     }
-    function unblockStuckGame() external{
+    function unblockStuckG9ame() external{
         require(now - lastMoveDate > 1000);//game is hanged to 1000 seconds with no moves
         ProcessDraw();
     }
