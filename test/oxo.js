@@ -91,6 +91,47 @@ contract('Oxo', function(accounts) {
             });
     });
 
+    ////////////  joinGame after game finished //////////////////
+
+
+    it('checks for possibility of playing another one game after first game s ended', () => {
+
+        return Promise.resolve()
+            .then(() => oxoInst.joinGame({from: player1,
+                value: bets}))
+            .then(() => oxoInst.joinGame({from: player2,
+                value: bets}))
+            .then(() => oxoInst.move(0, 0, {from: player1}))
+            .then(() => oxoInst.move(1, 0, {from: player2}))
+
+            .then(() => oxoInst.move(0, 1, {from: player1}))
+            .then(() => oxoInst.move(2, 0, {from: player2}))
+            .then(() => oxoInst.move(0, 2, {from: player1}))
+
+            .then(() => oxoInst.joinGame({from: player1,
+                value: bets}))
+            .then(() => oxoInst.joinGame({from: player2,
+                value: bets}))
+            .then(() => oxoInst.move(0, 0, {from: player1}))
+            .then(() => oxoInst.move(1, 0, {from: player2}))
+
+            .then(() => oxoInst.move(0, 1, {from: player1}))
+            .then(() => oxoInst.move(2, 0, {from: player2}))
+            .then(() => oxoInst.move(0, 2, {from: player1}))
+
+            .then(result => {
+                assert.equal(result.logs.length, 3);
+                assert.equal(result.logs[1].event, 'Win');
+                assert.equal(result.logs[1].args.addr, player1);
+                assert.equal(result.logs[1].args.player
+                    .toString(), "1");
+                assert.equal(result.logs[1].args.gain.toString(), (bets*2*90/100/ether).toString());
+
+            });
+
+    });
+
+
     ///////////////////////////// move ///////////////////////////
 
     it('sequence of moves on move', () => {
