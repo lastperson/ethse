@@ -1,8 +1,8 @@
 pragma solidity ^0.4.19;
 contract OXOGame {
-
+    uint8 constant MAX_MOVE_TIMEOUT = 2;//seconds, need this to be 200 in prod
     uint8[3][3] board;
-    uint8 public state; //0 - ready to start, 1 - 1 player ready, 2 - 2 player
+    uint8 state; //0 - ready to start, 1 - 1 player ready, 2 - 2 player
     address player1;
     address player2;
     uint bid;
@@ -13,6 +13,7 @@ contract OXOGame {
     event GameEndInWin(address winner_addr, uint8 winner_turn);
     event GameEndInDraw();
     event GameReady();
+    event UnlockGame(uint256 _now, uint256 _last);
     function OXOGame()public{
         //state
     }
@@ -67,6 +68,7 @@ contract OXOGame {
         require(board[x][y] == 0);
 
         board[x][y] = playerToMove;
+        numMove++;
         if(CheckWin(x,y)){
             ProcessWin();
         }
@@ -75,7 +77,6 @@ contract OXOGame {
         }
         else{
             playerToMove = 3-playerToMove;
-            numMove++;
             lastMoveDate = now;
         }
     }
@@ -111,8 +112,9 @@ contract OXOGame {
     function CheckDraw() internal view returns(bool){
         return numMove == 9;
     }
-    function unblockStuckG9ame() external{
-        require(now - lastMoveDate > 1000);//game is hanged to 1000 seconds with no moves
+    function unblockStuckGame() external{
+        require(now - lastMoveDate > MAX_MOVE_TIMEOUT);//game is hanged to 1000 seconds with no moves
+        UnlockGame(now,lastMoveDate);
         ProcessDraw();
     }
 }
