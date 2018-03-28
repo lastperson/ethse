@@ -1,7 +1,7 @@
 pragma solidity 0.4.15;
 
 contract Cryptoxo{
-
+    
     // Rules:
     // Contract is createdby owner (defined in constructor)
     // Ownser can't play the game, owner is a refferie only in case one of players disappears, to forcibly call draw the game
@@ -18,7 +18,6 @@ contract Cryptoxo{
     // At any moment anyone can use compare functions, they are public for easier understanding at any moment. In future I will hide them and add UI to the game :)
     // Several public functions/variables added fore easier understanding on what stage the game is, like current contract balance, current state of OXO board, previous player etc etc
     // Few rudiments left in the code and are commented but not erased, for me to debug contract later and add more stuff to it
-
     
     address public owner;
     address public playerRateProposer;
@@ -92,9 +91,9 @@ contract Cryptoxo{
         //movesCounter = 0;
         
         // creating an empty oxo board;
-        oxoBoard[0] = ["X", "O", "O"];
-        oxoBoard[1] = ["O", "O", "X"];
-        oxoBoard[2] = ["X", "X", "-"];
+        oxoBoard[0] = ["-", "-", "-"];
+        oxoBoard[1] = ["-", "-", "-"];
+        oxoBoard[2] = ["-", "-", "-"];
     }
     
     
