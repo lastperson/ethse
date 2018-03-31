@@ -6,6 +6,8 @@ contract OXO {
     event MarkEvent(address addr, uint x, uint y);
     event ErrorEvent(string message);
     event WinnerEvent(uint8 winner);
+    event DrawEvent();
+
 
     address player1;
     address player2;
@@ -14,6 +16,7 @@ contract OXO {
     uint8[3][] grid;
     uint8 lastMarkByPlayer = 0;
     uint lastMarkTimestamp = 0;
+    bool isPlaying = false;
     
     function OXO() public {
         grid = new uint8[3][](3);
@@ -26,10 +29,12 @@ contract OXO {
             }
             player1 = msg.sender;
             player1Bid = msg.value;
+            _cleanGrid();
         } else if (player2==0){ 
             require(msg.value == player1Bid);
             player2 = msg.sender;
             player2Bid = msg.value;
+            _cleanGrid();
         } else {
             revert();
         }
@@ -84,18 +89,23 @@ contract OXO {
         bool slotsAvailable = _checkIfThereIsSlots();
 
         uint8 winner = checkIfSomebodyWins();
-        WinnerEvent(winner);
         if (winner==1) {
+            WinnerEvent(winner);
             player1.transfer(this.balance);
+            _cleanPlayers();
             return true;
         } else if (winner==2){
+            WinnerEvent(winner);
             player2.transfer(this.balance);
+            _cleanPlayers();
             return true;
         } else if(!slotsAvailable){  
+            DrawEvent();
             // draw (all positions are taken but there is no winner)
             // send bids back to the players
             player1.transfer(this.balance / 2);
             player2.transfer(this.balance);
+            _cleanPlayers();
         } // else { game is going on}
         return false;
     }
@@ -135,6 +145,25 @@ contract OXO {
             }
         }
        return false;
+    }
+    
+    // cleans up fields after game is finished
+    function _cleanPlayers () internal returns (bool) {
+        player1 = 0;
+        player2 = 0;
+        player1Bid = 0;
+        player2Bid = 0;
+        lastMarkByPlayer = 0;
+       return true;
+    }
+
+    function _cleanGrid () internal returns (bool) {
+        for (uint i = 0 ;i<3;i++) {
+            for (uint j = 0 ;j<3;j++) {
+                grid[i][j] = 0;
+            }
+        }
+       return true;
     }
 
     function getBalance() public constant returns(uint) {
