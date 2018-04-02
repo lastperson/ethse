@@ -6,7 +6,7 @@
     "test": "truffle test",
     "compile": "truffle compile",
     "truffle": "truffle",
-    "testrpc": "truffle develop"
+    "testrpc": "ganache-cli"
   },
   "repository": {
     "type": "git",
