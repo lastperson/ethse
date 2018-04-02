@@ -168,45 +168,6 @@ contract Oxo{
         }
     }
     
-    /*
-    function compareHorizontal() public returns (bool){
-        for(uint8 i = 0; i < 2; i++){
-            if (keccak256(oxoBoard[i][0]) == keccak256(empty)) return false;
-            if(keccak256(oxoBoard[i][0]) == keccak256(oxoBoard[i][1]) && keccak256(oxoBoard[i][1]) == keccak256(oxoBoard[i][2])){
-                Alert(oxoBoard[i][0], oxoBoard[i][1], oxoBoard[i][2]);
-                UserWin(msg.sender, 1);
-                returnEtherToWinner();
-                return true;
-            }
-        }
-    }
-    
-    function compareVertical() public returns (bool){
-        for(uint8 i = 0; i <= 2; i++){
-            if(keccak256(oxoBoard[0][i]) == keccak256(empty)) return false;
-            if(keccak256(oxoBoard[0][i]) == keccak256(oxoBoard[1][i]) && keccak256(oxoBoard[1][i]) == keccak256(oxoBoard[2][i])){
-                UserWin(msg.sender, 2);
-                returnEtherToWinner();
-                return true;
-            }
-        }
-    }
-    
-    function compareDiagonal() public returns (bool){
-        if(keccak256(oxoBoard[1][1]) == keccak256(empty)) return false;
-        if(keccak256(oxoBoard[0][0]) == keccak256(oxoBoard[1][1]) && keccak256(oxoBoard[1][1]) == keccak256(oxoBoard[2][2])){
-            UserWin(msg.sender, 3);
-            returnEtherToWinner();
-            return true;
-        } else if(keccak256(oxoBoard[0][2]) == keccak256(oxoBoard[1][1]) && keccak256(oxoBoard[1][1]) == keccak256(oxoBoard[2][0])){
-            UserWin(msg.sender, 3);
-            returnEtherToWinner();
-            return true;
-        }
-    }
-    */
-    
-    
     function returnEtherToWinner() internal returns (bool){
         msg.sender.transfer(this.balance);
         return returnToInitialState();
@@ -231,8 +192,6 @@ contract Oxo{
         showOxoBoardString("row 3:", string(oxoBoard[0][2]), string(oxoBoard[1][2]), string(oxoBoard[2][2]));
     }
     
-    
-    
     function returnToInitialState() internal returns (bool){
         oxoBoard[0] = ["-", "-", "-"];
         oxoBoard[1] = ["-", "-", "-"];
@@ -247,10 +206,10 @@ contract Oxo{
         players.x = 0;
         players.o = 0;
         
-        
         ReturnToInintialStateComplete('board is ampty again, new game can begin');
         return true;
-    }    
+    }  
+    
     function returnOfferedRate() internal onlyPlayerRateProposer returns (bool){
         msg.sender.transfer(this.balance);
         playerRateProposer = 0;
