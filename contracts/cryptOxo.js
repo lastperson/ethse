@@ -1,6 +1,6 @@
 const Reverter = require('./helpers/reverter');
 const Asserts = require('./helpers/asserts');
-const MoneyBack = artifacts.require('./MoneyBack.sol');
+const MoneyBack = artifacts.require('./CrytOxo.sol');
 require('assert');
 
 contract('CryptOxo', function(accounts) {
