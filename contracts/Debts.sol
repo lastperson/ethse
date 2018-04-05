@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity ^0.4.15;
 
 contract Debts {
     address public owner;
@@ -47,4 +47,7 @@ contract Debts {
         require(c >= _a);
         return c;
     }
+	function retfalse() returns (bool){
+		return owner == msg.sender;
+	}
 }

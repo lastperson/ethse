@@ -7,4 +7,3 @@ install:
   - "npm run testrpc > /dev/null &"
 script:
   - "npm run test"
-  
