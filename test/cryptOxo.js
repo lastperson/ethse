@@ -38,7 +38,6 @@ contract('CryptOxo', function(accounts) {
   it('should return ETH to both players if game is draw');
   // here happy flow ends
 
-
   it('should allow to see offer rate');
 
   it('should allow anyone to call showOxoBoard()');
