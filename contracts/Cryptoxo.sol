@@ -1,6 +1,25 @@
 pragma solidity 0.4.15;
 
-contract Oxo{
+    //       Rules:
+    // Contract is created by owner (defined in constructor)
+    // Ownser can't play the game, owner is a refferie only in case one of players disappears, to forcibly call draw the game
+    // After contract is deplyed - userX makes the offer by sending certain amount of ETH to a contract using contractOffer()
+    // After rate is offered - any userO can accept it by launching the replyOffer()
+    // replyOffer() checks if replied rate is the same as offered. If true - game begins, if false - nothing happens, contract waits for any user to fit the offered rate
+    // In case none replies the offer - userX (only userX) can call returnOfferRate(). Only userX and only if offer is not accepted
+    // Aftwer offer is accepted - users can make moves using makeMove(), where in arguments the pass numbers (column, row)
+    // Any user (X or O) can make the first move. Once the move is done - straignt order is set, one by one
+    // If some user wins - he gets the ETH ballance of current contract
+    // In case of draw - both players receive their rate back
+    // If something foes wrong (for instance one user disappears) - owner can call forciblyDraw() and ETH will be devided between users as if it was draw game. This is the most vulnerable place where owner needs to be trusted, or needs to trust. Still under questions to me
+    // Only one game at a time (e.g. not possible to play while someone else is playing)
+    // At any moment anyone can use compare functions, they are public for easier understanding at any moment. In future I will hide them and add UI to the game :)
+    // Several public functions/variables added fore easier understanding on what stage the game is, like current contract balance, current state of OXO board, previous player etc etc
+    // Few rudiments left in the code and are commented but not erased, for me to debug contract later and add more stuff to it
+
+    
+
+contract CryptoOxo{
     
     address public owner;
     address public playerRateProposer;
