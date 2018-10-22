@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity 0.4.24;
 
 contract Debts {
     address public owner;
@@ -21,28 +21,28 @@ contract Debts {
         _;
     }
 
-    function Debts() {
+    constructor() public {
         owner = msg.sender;
     }
 
-    function borrow(uint _value) onlyNotOwner() returns(bool) {
+    function borrow(uint _value) public onlyNotOwner() returns(bool) {
         debts[msg.sender] = _safeAdd(debts[msg.sender], _value);
-        Borrowed(msg.sender, _value);
+        emit Borrowed(msg.sender, _value);
         return true;
     }
 
-    function repay(address _by, uint _value) onlyOwner() returns(bool) {
+    function repay(address _by, uint _value) public onlyOwner() returns(bool) {
         debts[_by] = _safeSub(debts[_by], _value);
-        Repayed(_by, _value);
+        emit Repayed(_by, _value);
         return true;
     }
 
-    function _safeSub(uint _a, uint _b) internal constant returns(uint) {
+    function _safeSub(uint _a, uint _b) internal pure returns(uint) {
         require(_b <= _a);
         return _a - _b;
     }
 
-    function _safeAdd(uint _a, uint _b) internal constant returns(uint) {
+    function _safeAdd(uint _a, uint _b) internal pure returns(uint) {
         uint c = _a + _b;
         require(c >= _a);
         return c;
